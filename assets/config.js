@@ -65,12 +65,22 @@ const CONFIG = {
   // URL fija de la evaluación para el QR. Vacío = se calcula automáticamente según dónde esté publicado.
   publicacion: { urlEvaluacion: '' },
 
-  // DESAFÍO EN VIVO (vivo.html + jugar.html). Usa el canal de tiempo real de Supabase:
-  // no crea tablas ni guarda datos. Sin URL/clave funciona en modo demostración
-  // (participantes simulados o pestañas del mismo navegador).
+  // SUPABASE: registro central, administración, informes y desafío en vivo.
+  // Proyecto 'Inventario Clear'. Los datos viven en el schema privado rs_capacitacion y solo se
+  // accede mediante las funciones public.rs_* (ver README: Registro central).
+  // La clave es la PÚBLICA (publishable): es seguro que esté en el sitio. Nunca poner la service_role.
+  // Dejar url vacía para volver al modo local (sin servidor).
+  supabase: {
+    url: 'https://hhwfhearafhmougtfssu.supabase.co',
+    clavePublica: 'sb_publishable_UlhKyAUIXPFxrKkEb0lJxw_66kgPg9o'
+  },
+
+  // REGISTRO DE ASISTENCIA con firma en pantalla antes de la evaluación.
+  asistencia: { firmaObligatoria: true },
+
+  // DESAFÍO EN VIVO (vivo.html + jugar.html). Usa el canal de tiempo real de Supabase.
+  // Sin Supabase funciona en modo demostración (participantes simulados o pestañas del mismo navegador).
   vivo: {
-    supabaseUrl: 'https://hhwfhearafhmougtfssu.supabase.co',   // Proyecto Supabase 'Inventario Clear' (solo Realtime; schema rs_capacitacion)
-    supabaseAnonKey: 'sb_publishable_UlhKyAUIXPFxrKkEb0lJxw_66kgPg9o',   // Clave PÚBLICA (publishable): es seguro que esté en el sitio
     tiempoPregunta: 20,       // segundos por pregunta
     puntosBase: 500,          // puntos por respuesta correcta
     puntosVelocidad: 500,     // bonus máximo por responder rápido

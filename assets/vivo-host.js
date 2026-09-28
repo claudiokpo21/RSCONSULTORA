@@ -200,7 +200,7 @@ function reveal(){
   const rk = rankMap(); H.results = {};
   H.players.forEach(p => H.results[p.pid] = { ok:p.last.ok, pts:p.last.pts, answered:p.last.answered, score:p.score, rank:rk[p.pid], of:H.players.size });
   const answered = H.answers.size, correctN = poll ? 0 : dist[it.c];
-  H.stats[H.q] = { answered, correctPct: poll || !answered ? null : Math.round(correctN / answered * 100) };
+  H.stats[H.q] = { answered, dist, correctPct: poll || !answered ? null : Math.round(correctN / answered * 100) };
   H.phase = 'reveal';
   const max = Math.max(1, ...dist), last = H.q === ITEMS.length - 1;
   const next = poll ? (last ? 'Ver podio final' : 'Siguiente pregunta') : 'Ver posiciones';
@@ -270,13 +270,33 @@ function finish(){
         <button class="btn ghost" id="again">${ic('refresh')} Nueva sala</button>
       </div>
     </div>
+    <div id="saveMsg"></div>
     <div id="evalQr"></div>
     <p class="disclaimer">${ic('info')} El desafío es una actividad de repaso grupal. El registro formal es la evaluación individual.</p>
   </div>`);
   $('#primaryAction').onclick = showEvalQr;
   $('#csv').onclick = exportCsv;
+  saveDesafio(grp, t, w);
   $('#again').onclick = async () => { if(await confirmDialog('Nueva sala','Se borrarán los puntajes de este desafío. ¿Querés empezar una sala nueva?','Nueva sala','Cancelar')) restart(); };
   broadcastState();
+}
+/** Guarda el resumen del desafío en el informe de la jornada (requiere ?j= y sesión de administrador). */
+async function saveDesafio(grp, t, w){
+  const box = $('#saveMsg'), j = typeof jornadaParam === 'function' ? jornadaParam() : '';
+  if(!box || !j || H.saved || liveMode() !== 'supabase') return;
+  const s = await Central.session().catch(() => null);
+  if(!s){ box.innerHTML = fb('info','Resumen no guardado',`Para sumar este desafío al informe de la jornada ${esc(j)}, iniciá sesión en Administración en este equipo antes de empezar.`); return; }
+  const r = ranked();
+  const datos = {
+    fecha: new Date().toISOString(), sala: H.code, participantes: H.players.size, aciertosGrupo: grp,
+    ganador: w ? w.label : null, equipos: t.map(x => ({ id:x.id, n:x.n, promedio:x.avg })),
+    podio: r.slice(0, 3).map(p => ({ nombre:p.name, equipo:p.team, puntos:p.score })),
+    preguntas: ITEMS.map((it, i) => ({ tipo:it.tipo, q:it.q, opciones:itemOptions(it), correcta: it.tipo === 'encuesta' ? null : it.c,
+      dist: H.stats[i] ? H.stats[i].dist : null, respondieron: H.stats[i] ? H.stats[i].answered : 0, correctPct: H.stats[i] ? H.stats[i].correctPct : null }))
+  };
+  try{ await Central.rpc('rs_admin_guardar_desafio', { p_codigo:j, p_sala:H.code, p_datos:datos }); H.saved = true;
+       box.innerHTML = fb('ok','Guardado en el informe',`El resumen del desafío quedó registrado en la jornada ${esc(j)}.`); }
+  catch(e){ box.innerHTML = fb('warn','No se pudo guardar el resumen', esc(e.code === '42501' ? 'Tu usuario no tiene permisos de administrador.' : e.message)); }
 }
 function showEvalQr(){
   const box = $('#evalQr'), url = evalUrl();
@@ -317,7 +337,7 @@ function restart(){
   clearInterval(H.tick); clearBots(); clearInterval(H.rebroadcast);
   send({ t:'state', phase:'closed', code:H.code });
   H.ch && H.ch.close();
-  Object.assign(H, { phase:'lobby', q:-1, players:new Map(), answers:new Map(), results:{}, prevRank:{}, stats:[] });
+  Object.assign(H, { phase:'lobby', q:-1, players:new Map(), answers:new Map(), results:{}, prevRank:{}, stats:[], saved:false });
   start();
 }
 document.addEventListener('keydown', e => {

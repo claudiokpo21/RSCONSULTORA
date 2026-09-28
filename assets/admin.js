@@ -120,5 +120,6 @@ function adminBanner(){
 /* ---- Inicio ---- */
 (function init(){
   if(!CONFIG.admin.habilitado){ location.href = 'index.html'; return; }
+  if(typeof Central !== 'undefined' && Central.enabled()){ acStart(); return; }   // registro central (Supabase)
   isRemembered() ? openAdmin() : adminLogin();
 })();

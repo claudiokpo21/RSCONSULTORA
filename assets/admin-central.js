@@ -33,7 +33,8 @@ function acLogin(err, email){
       ${err ? `<div class="form-error">${fb('bad', esc(err), '')}</div>` : ''}
       <div class="actions"><button class="btn primary lg" type="submit" style="width:100%">${ic('lock')} INGRESAR</button></div>
     </form>
-    <p class="sm dim" style="margin-top:14px">La sesión queda abierta en este equipo hasta que la cierres. Solo los emails autorizados como administradores pueden ver los resultados.</p>
+    <button type="button" class="admin-link" id="acForgot" style="margin:14px 0 0">¿Olvidaste tu contraseña?</button>
+    <p class="sm dim" style="margin-top:10px">La sesión queda abierta en este equipo hasta que la cierres. Solo los emails autorizados como administradores pueden ver los resultados.</p>
     <a href="index.html" class="admin-link">${ic('arrowl')} Volver al inicio</a>
   </div>`);
   $('#acForm').onsubmit = async e => {
@@ -44,7 +45,62 @@ function acLogin(err, email){
     try{ const s = await Central.signIn(em, pw); await acAfterLogin(s); }
     catch(err){ acLogin(Central.isNetworkError(err) ? 'Sin conexión a internet.' : err.message, em); }
   };
+  $('#acForgot').onclick = () => acForgot($('#acEmail').value.trim());
   (email ? $('#acPass') : $('#acEmail')).focus();
+}
+
+/* ---------- Blanqueo de clave ---------- */
+function acForgot(email, msg){
+  acShow(`<div class="gate-card" style="margin:6vh auto;max-width:480px">
+    <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">${esc(CONFIG.consultora.nombre)}</p><h1>Blanquear contraseña</h1><p class="muted">Te enviamos un enlace por mail para crear una contraseña nueva.</p></div></div>
+    <form id="fgForm" novalidate>
+      <div class="field"><label for="fgEmail">EMAIL</label><input id="fgEmail" type="email" autocomplete="username" value="${esc(email || '')}"></div>
+      ${msg ? `<div class="form-error">${msg}</div>` : ''}
+      <div class="actions"><button class="btn primary lg" type="submit" style="width:100%">${ic('message')} ENVIAR ENLACE</button></div>
+    </form>
+    <button type="button" class="admin-link" id="fgBack">${ic('arrowl')} Volver al ingreso</button>
+  </div>`);
+  $('#fgBack').onclick = () => acLogin(null, $('#fgEmail').value.trim());
+  $('#fgForm').onsubmit = async e => {
+    e.preventDefault();
+    const em = $('#fgEmail').value.trim();
+    if(!/^\S+@\S+\.\S+$/.test(em)){ acForgot(em, fb('bad','Ingresá un email válido.','')); return; }
+    const btn = $('#fgForm button[type=submit]'); btn.disabled = true;
+    try{
+      await Central.resetPassword(em);
+      acForgot(em, fb('ok','Revisá tu correo','Si el email corresponde a un usuario, vas a recibir un enlace para crear una contraseña nueva (revisá también spam). El enlace vence en poco tiempo.'));
+    }catch(err){ acForgot(em, fb('bad','No se pudo enviar el enlace', esc(Central.isNetworkError(err) ? 'Sin conexión a internet.' : err.message))); }
+  };
+  $('#fgEmail').focus();
+}
+/** Formulario de contraseña nueva. mode: 'recovery' (llegó por el enlace del mail) o 'change' (sesión iniciada). */
+function acNewPassword(mode, err){
+  acShow(`<div class="gate-card" style="margin:6vh auto;max-width:480px">
+    <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">${esc(CONFIG.consultora.nombre)}</p><h1>${mode === 'recovery' ? 'Nueva contraseña' : 'Cambiar contraseña'}</h1><p class="muted">Mínimo 10 caracteres. Conviene combinar palabras, números y símbolos.</p></div></div>
+    <form id="npForm" novalidate>
+      <div class="field"><label for="np1">CONTRASEÑA NUEVA</label><input id="np1" type="password" autocomplete="new-password" minlength="10"></div>
+      <div class="field" style="margin-top:14px"><label for="np2">REPETIR CONTRASEÑA</label><input id="np2" type="password" autocomplete="new-password"></div>
+      ${err ? `<div class="form-error">${fb('bad', esc(err), '')}</div>` : ''}
+      <div class="actions"><button class="btn primary lg" type="submit" style="width:100%">${ic('lock')} GUARDAR CONTRASEÑA</button></div>
+    </form>
+    ${mode === 'change' ? `<button type="button" class="admin-link" id="npBack">${ic('arrowl')} Volver al panel</button>` : ''}
+  </div>`);
+  if($('#npBack')) $('#npBack').onclick = acRender;
+  $('#npForm').onsubmit = async e => {
+    e.preventDefault();
+    const a = $('#np1').value, b = $('#np2').value;
+    if(a.length < 10) return acNewPassword(mode, 'La contraseña tiene que tener al menos 10 caracteres.');
+    if(a !== b) return acNewPassword(mode, 'Las contraseñas no coinciden.');
+    acLoading('Guardando…');
+    try{
+      await Central.updatePassword(a);
+      history.replaceState(null, '', 'admin.html');
+      const s = await Central.session();
+      await acAfterLogin(s);
+      const top = $('.admin-top'); if(top) top.insertAdjacentHTML('afterend', fb('ok','Contraseña actualizada','Desde ahora ingresás con la contraseña nueva.'));
+    }catch(er){ acNewPassword(mode, Central.isNetworkError(er) ? 'Sin conexión a internet.' : er.message); }
+  };
+  $('#np1').focus();
 }
 async function acAfterLogin(s){
   AC.user = s.user;
@@ -74,6 +130,7 @@ function acRender(){
       <div class="actions" style="margin:0;align-items:center">
         <span class="who">${ic('user')} ${esc(AC.user.email)}</span>
         <button class="btn ghost sm" id="acRefresh">${ic('refresh')} Actualizar</button>
+        <button class="btn ghost sm" id="acPw">${ic('lock')} Cambiar contraseña</button>
         <button class="btn ghost sm" id="acLogout">${ic('logout')} Cerrar sesión</button>
       </div>
     </div>
@@ -84,6 +141,7 @@ function acRender(){
     <div id="acBody">${AC.tab === 'jornadas' ? jornadasHTML() : resultadosHTML()}</div>`);
   $$('[data-tab]', acEl).forEach(b => b.onclick = () => { AC.tab = b.dataset.tab; acRender(); });
   $('#acRefresh').onclick = acReload;
+  $('#acPw').onclick = () => acNewPassword('change');
   $('#acLogout').onclick = async () => { await Central.signOut(); AC.user = null; acLogin(); };
   AC.tab === 'jornadas' ? bindJornadas() : bindResultados();
 }
@@ -227,6 +285,12 @@ function acCsv(rows){
 /* ---------- Inicio ---------- */
 async function acStart(){
   acLoading('Verificando sesión…');
-  try{ const s = await Central.session(); s ? await acAfterLogin(s) : acLogin(); }
-  catch(e){ acLogin(); }
+  const rec = Central.recoveryInfo();
+  try{
+    const s = await Central.session();
+    if(rec.recovery && s) return acNewPassword('recovery');                 // llegó desde el mail de blanqueo
+    if(rec.error){ history.replaceState(null, '', 'admin.html');
+      return acForgot('', fb('bad','El enlace no es válido o venció', 'Pedí un enlace nuevo. Cada enlace sirve una sola vez y vence en poco tiempo.')); }
+    s ? await acAfterLogin(s) : acLogin();
+  }catch(e){ acLogin(); }
 }

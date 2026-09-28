@@ -6,6 +6,8 @@
    · Administración: login de Supabase Auth + lista de administradores (rs_capacitacion.administradores).
    RS Consultora · Fatiga y Conducción Segura */
 
+// Se guarda antes de crear el cliente: Supabase limpia el enlace de recuperación de la URL al procesarlo.
+const RS_URL_HASH = location.hash || '';
 function rsClient(){
   const S = CONFIG.supabase || {};
   if(!S.url || !S.clavePublica || !window.supabase || !window.supabase.createClient) return null;
@@ -74,6 +76,19 @@ const Central = {
     return data.session;
   },
   async signOut(){ try{ await rsClient().auth.signOut(); }catch(e){} },
+  /** Envía el mail de blanqueo. El enlace vuelve a admin.html (debe estar en Redirect URLs de Supabase). */
+  async resetPassword(email){
+    const { error } = await rsClient().auth.resetPasswordForEmail(email, { redirectTo: new URL('admin.html', location.href).href });
+    if(error) throw new Error(/rate|seconds/i.test(error.message) ? 'Se enviaron demasiados mails seguidos. Esperá unos minutos y volvé a intentar.' : error.message);
+  },
+  async updatePassword(password){
+    const { error } = await rsClient().auth.updateUser({ password });
+    if(error) throw new Error(/different|same/i.test(error.message) ? 'La nueva contraseña tiene que ser distinta de la anterior.' : /weak|short|characters|pwned/i.test(error.message) ? 'La contraseña es débil o figura en filtraciones conocidas. Elegí otra más larga.' : error.message);
+  },
+  recoveryInfo(){
+    const h = new URLSearchParams(RS_URL_HASH.replace(/^#/, ''));
+    return { recovery: h.get('type') === 'recovery', error: h.get('error_description') || h.get('error') || '' };
+  },
   esAdmin(){ return this.rpc('rs_es_admin'); }
 };
 

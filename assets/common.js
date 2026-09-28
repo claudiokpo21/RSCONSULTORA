@@ -68,7 +68,7 @@ document.body.insertAdjacentHTML('afterbegin', `<svg width="0" height="0" style=
    ===================================================================== */
 function newState(){
   return {
-    recordId: null,
+    recordId: null, token: null, firma: null, verificacion: null, jornada: null,
     participant: { legajo:'', nombre:'', apellido:'', empresa:'', sector:'', tipoVehiculo:'' },
     training: { nombre: CONFIG.capacitacion.nombre, fechaInicio:null, fechaFin:null, duracion:null /* minutos */ },
     evaluation: { preguntas: CONTENT.quiz.length, correctas:0, incorrectas:0, porcentaje:0, intentos:0, estado:'SIN COMPLETAR' },
@@ -190,7 +190,13 @@ function initBrand(){
   const m = document.getElementById('brandMark'); if(m) m.innerHTML = brandMarkHTML();
   const n = document.getElementById('brandName'); if(n) n.textContent = CONFIG.consultora.nombre.toUpperCase();
 }
-function evalUrl(){ return CONFIG.publicacion.urlEvaluacion || new URL('evaluacion.html', location.href).href; }
+function evalUrl(){
+  // Conserva el código de jornada (?j=) para que los resultados queden asociados a esa jornada.
+  const u = new URL(CONFIG.publicacion.urlEvaluacion || 'evaluacion.html', location.href);
+  const j = new URLSearchParams(location.search).get('j');
+  if(j) u.searchParams.set('j', j.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8));
+  return u.href;
+}
 function qrSVG(text){
   if(typeof qrcode !== 'function') return '<p style="color:#111;padding:24px;line-height:1.4">QR no disponible</p>';
   const q = qrcode(0, 'M'); q.addData(text); q.make();
@@ -217,7 +223,7 @@ function printCertificate(){
   const fecha = fmtDate(t.fechaFin || new Date());
   $('#printArea').innerHTML = `<div class="cert">
     <div class="cert-top"><div class="brandrow">${o.logo ? `<img src="${esc(o.logo)}" alt="">` : `<span class="rsmark">${esc(CONFIG.consultora.iniciales)}</span>`}<div><div class="org">${esc(CONFIG.consultora.nombre)}</div><div style="font-size:9pt;color:#555">Higiene y Seguridad</div></div></div>
-      <div class="code">Código: ${esc(CONFIG.capacitacion.codigo)} · v${esc(CONFIG.capacitacion.version)}<br>Registro: ${esc(State.recordId || '')}</div></div>
+      <div class="code">Código: ${esc(CONFIG.capacitacion.codigo)} · v${esc(CONFIG.capacitacion.version)}<br>${State.verificacion ? 'Verificación: <b>' + esc(State.verificacion) + '</b>' : 'Registro: ' + esc(State.recordId || '')}</div></div>
     <h1>CONSTANCIA DE CAPACITACIÓN</h1>
     <p class="sub">Capacitación de Higiene y Seguridad</p>
     <p class="body">Se deja constancia de que <b>${esc(fullName())}</b>, legajo <b>${esc(p.legajo)}</b>,<br>completó y aprobó la capacitación<br><b>“${esc(CONFIG.capacitacion.nombre)}”</b>,<br>dictada por ${esc(capacitador())} – ${esc(CONFIG.consultora.nombre)}.</p>
@@ -232,7 +238,8 @@ function printCertificate(){
       <tr><td>Fecha</td><td>${fecha}</td></tr>
       <tr><td>Capacitador</td><td>${esc(capacitador())} · ${esc(CONFIG.consultora.nombre)}</td></tr>
     </table>
-    <div class="signs"><div>Firma del participante</div><div>${esc(capacitador())}<br>${esc(CONFIG.consultora.rol)} · ${esc(CONFIG.consultora.nombre)}</div></div>
+    <div class="signs"><div><span class="sigbox">${State.firma ? `<img src="${State.firma}" alt="Firma del participante">` : ''}</span><span class="sigline">Firma del participante</span></div><div><span class="sigbox"></span><span class="sigline">${esc(capacitador())}<br>${esc(CONFIG.consultora.rol)} · ${esc(CONFIG.consultora.nombre)}</span></div></div>
+    ${State.verificacion && typeof verifyUrl === 'function' ? `<div class="verify"><div class="vqr">${qrSVG(verifyUrl(State.verificacion))}</div><div><b>Constancia verificable</b><br>Escaneá el código QR o ingresá en <b>${esc(new URL('verificar.html', location.href).href.replace(/^https?:\/\//, ''))}</b> el código <b>${esc(State.verificacion)}</b> para comprobar su autenticidad.</div></div>` : ''}
     <div class="foot">Constancia generada el ${fmtDate(new Date())} a las ${fmtTime(new Date())}. Criterio de aprobación: ${CONFIG.aprobacion.porcentajeMinimo} %. El resultado refleja la comprensión de los contenidos de la capacitación y no constituye una evaluación médica ni de aptitud laboral.</div>
   </div>`;
   document.body.classList.add('print-cert');
