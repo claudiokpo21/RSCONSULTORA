@@ -12,9 +12,7 @@ Prototipo web estático (HTML + CSS + JavaScript, sin compilación), listo para 
 | `evaluacion.html` | Cada participante | Identificación, repaso opcional, 10 preguntas, resultado y constancia A4 (en el celular: "Guardar como PDF"). |
 | `vivo.html` | Capacitador (proyección) | **Desafío en vivo**: sala con QR y código, preguntas con temporizador, gráfico de respuestas, posiciones, equipos y podio. Tecla **F** = pantalla completa, **Espacio** = avanzar. |
 | `jugar.html` | Cada participante (celular) | Se une con el QR, elige equipo (Livianos / Pesados) y responde con botones de colores. Ve si acertó, sus puntos y su posición. |
-| `admin.html` | Capacitador | Login con usuario de Supabase. **Jornadas** (crear, links y QR, cerrar, informe) y **Resultados** (indicadores, filtros, CSV, eliminar). |
-| `informe.html` | Capacitador → empresa cliente | Informe A4 de la jornada: resumen, distribución de resultados, aciertos por tema, temas a reforzar, desafío en vivo, conclusión y planilla de asistencia con firmas. Se imprime o guarda como PDF. |
-| `verificar.html` | Cualquiera | Verifica una constancia con su código (o escaneando el QR impreso). |
+| `admin.html` | Capacitador | Panel con contraseña: indicadores, filtros y exportación CSV. Opción "Recordar este equipo". |
 
 ```
 assets/config.js     ← lo que se edita: consultora, capacitador, aprobación, clave, integración
@@ -46,27 +44,6 @@ vercel --prod   # publicación
 
 El QR se genera solo con la dirección donde esté publicado el sitio. Si se usa un dominio propio y se quiere fijar la URL, completar `publicacion.urlEvaluacion` en `assets/config.js`.
 
-## Registro central, jornadas e informe (Supabase)
-
-**Cómo se usa en una capacitación**
-1. En **Administración → Jornadas**, crear la jornada (empresa, lugar, fecha). Se genera un código, por ejemplo `B5ZB8`.
-2. Usar los links de esa jornada: presentación (`capacitacion.html?j=B5ZB8`), desafío (`vivo.html?j=B5ZB8`) y evaluación (`evaluacion.html?j=B5ZB8`). Los QR que se proyectan ya llevan el código.
-3. Cada trabajador: se identifica → **firma su asistencia con el dedo** → rinde → obtiene su constancia con **QR de verificación**.
-4. Al terminar: **Informe** → *Imprimir / Guardar PDF* y enviarlo a la empresa. Cerrar la jornada.
-
-**Seguridad**
-- Los datos viven en el schema privado `rs_capacitacion` del proyecto *Inventario Clear*, separado del inventario y sin acceso directo desde la API.
-- Solo se accede por funciones `public.rs_*`. Un participante solo puede crear o actualizar **su propio** registro (token secreto guardado en su dispositivo); no puede leer los de otros.
-- El porcentaje y el estado (APROBADO / NO APROBADO) se recalculan en el servidor.
-- El panel exige usuario de Supabase **y** que su email esté en `rs_capacitacion.administradores`. Los usuarios del inventario no tienen acceso.
-- **Sin señal** (yacimientos, obradores): el resultado queda en cola en el celular y se envía solo al volver la conexión.
-
-**Puesta en marcha (una sola vez)**
-1. Supabase → *Authentication → Users → Add user → Create new user*: email `claudioalejandrohernandez@gmail.com` (ya autorizado como administrador), una contraseña y marcar *Auto Confirm User*.
-2. Para autorizar a otra persona (por ejemplo, Roberto): crear su usuario igual que arriba y ejecutar en *SQL Editor*:
-   `insert into rs_capacitacion.administradores (email, nombre) values ('email@ejemplo.com', 'Lic. Roberto Seguin');`
-3. Recomendado: *Authentication → Settings → Leaked password protection* activado.
-
 ## Desafío en vivo
 
 Flujo sugerido: **Presentación → Desafío en vivo → Evaluación individual** (el podio final muestra el QR de la evaluación).
@@ -80,13 +57,21 @@ Flujo sugerido: **Presentación → Desafío en vivo → Evaluación individual*
 - **Si no conecta:** verificar internet en la computadora que proyecta y, en Supabase → *Realtime → Settings*, que esté habilitado el acceso público a los canales (*Allow public access*).
 - **Límites del plan gratuito de Supabase:** alcanzan para grupos de capacitación habituales (decenas de participantes simultáneos).
 
-## Alternativa: planilla de Google Sheets
+## Dónde quedan los resultados
 
-Además del registro central, cada resultado puede enviarse a una planilla de Google (opcional): pegar `apps-script/Code.gs` en *Extensiones → Apps Script* de la planilla, implementarlo como *Aplicación web* (ejecutar como: Yo; acceso: cualquier usuario) y copiar la URL `/exec` en `assets/config.js` → `integracion.endpoint`. Si se vacía `supabase.url`, el sitio vuelve al modo local sin servidor.
+**Tal como está (prototipo):** cada resultado queda guardado solo en el navegador del dispositivo donde se rindió la evaluación. Sirve para mostrar el desarrollo, pero con celulares propios el capacitador no ve los resultados de los demás.
+
+**Con planilla central (Google Sheets):**
+1. Crear una planilla en Google Sheets con la cuenta de la consultora.
+2. *Extensiones → Apps Script*, pegar el contenido de `apps-script/Code.gs` y guardar.
+3. *Implementar → Nueva implementación → Aplicación web*. Ejecutar como: **Yo**. Acceso: **Cualquier usuario**. Autorizar.
+4. Copiar la URL que termina en `/exec` y pegarla en `assets/config.js` → `integracion.endpoint`. Pegar el enlace de la planilla en `integracion.planillaUrl`.
+5. Volver a publicar en Vercel.
+
+Cada participante aparece como una fila: se crea al confirmar sus datos (estado *SIN COMPLETAR*) y se actualiza con cada intento y al finalizar. La planilla solo la ve quien tenga acceso a esa cuenta de Google.
 
 ## Antes de usarlo con trabajadores reales
 
-- El acceso de administración usa usuarios de Supabase (la clave `admin.password` de `config.js` solo se usa en modo local, sin servidor).
-- Nombre, apellido, legajo y firma son datos personales (Ley 25.326 de Protección de Datos Personales): informar a la empresa cliente y a los participantes para qué se usan y quién accede. El formulario ya muestra un aviso.
-- La evaluación se corrige en el navegador para dar la explicación inmediata; el servidor valida la consistencia del resultado.
+- Cambiar la contraseña de `admin.password` en `assets/config.js`. En un sitio publicado esa clave puede leerse en el código: es una barrera básica, no una protección fuerte.
+- Nombre, apellido y legajo son datos personales: la empresa cliente debería estar informada y autorizar su registro en la planilla de la consultora.
 - La capacitación no incluye límites legales de horas de conducción; remite a la política interna y a la normativa vigente aplicable.
