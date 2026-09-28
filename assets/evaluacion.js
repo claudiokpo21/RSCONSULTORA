@@ -6,6 +6,7 @@
 
 const view = $('#view');
 let syncState = '';
+let JORNADA = null, JORNADA_ERR = '';
 
 function show(html, focusSel){
   view.innerHTML = `<div class="slide">${html}</div>`;
@@ -18,7 +19,25 @@ function setWho(){
   const c = $('#whoChip'), p = State.participant;
   if(State.recordId){ c.hidden = false; c.textContent = `${fullName()} | Legajo: ${p.legajo}`; } else { c.hidden = true; c.textContent = ''; }
 }
-async function sendNow(){ syncState = 'sending'; paintSync(); syncState = await Sync.send(buildRecord()); paintSync(); }
+function centralPayload(){
+  const p = State.participant, t = State.training, e = State.evaluation;
+  return { id:State.recordId, token:State.token, jornada:State.jornada, legajo:p.legajo, nombre:p.nombre, apellido:p.apellido,
+    empresa:p.empresa, sector:p.sector, tipo_vehiculo:p.tipoVehiculo, capacitacion:CONFIG.capacitacion.nombre, capacitador:capacitador(),
+    fecha_inicio:t.fechaInicio, fecha_fin:t.fechaFin, duracion_min:t.duracion, preguntas:e.preguntas, correctas:e.correctas,
+    intentos:e.intentos, criterio:CONFIG.aprobacion.porcentajeMinimo, respuestas: State.quiz.done ? State.quiz.answers : null, firma:State.firma };
+}
+/** Envía el registro al servidor central (Supabase) y, si está configurada, a la planilla de Google. */
+async function sendAll(){
+  if(!State.recordId) return;
+  if(Sync.enabled()) Sync.send(buildRecord());
+  if(!Central.enabled()){ syncState = Sync.enabled() ? 'sent' : 'local'; paintSync(); return; }
+  syncState = 'sending'; paintSync();
+  const r = await Central.registrar(centralPayload());
+  if(r.ok){ syncState = 'sent'; if(r.verificacion){ State.verificacion = r.verificacion; persist(); } }
+  else syncState = r.queued ? 'queued' : 'error';
+  paintSync();
+}
+const sendNow = sendAll;
 
 /* ---------- 1. Identificación ---------- */
 function field(id, label, req, val, err, hint, ac){
@@ -28,18 +47,19 @@ function field(id, label, req, val, err, hint, ac){
 }
 function viewForm(v, errs){
   progress(4); setWho();
-  const privacidad = Sync.enabled()
-    ? `Tus datos (nombre, apellido y legajo) se usan solo para registrar esta capacitación. Al rendir, tu resultado se envía al registro de <b>${esc(CONFIG.consultora.nombre)}</b>, al que accede únicamente el responsable de la capacitación.`
+  const privacidad = (Sync.enabled() || Central.enabled())
+    ? `Tus datos (nombre, apellido, legajo${CONFIG.asistencia && CONFIG.asistencia.firmaObligatoria ? ' y firma' : ''}) se usan solo para registrar esta capacitación. Se envían al registro de <b>${esc(CONFIG.consultora.nombre)}</b>, al que accede únicamente el responsable de la capacitación.`
     : `Tus datos (nombre, apellido y legajo) se usan solo para registrar esta capacitación. En este prototipo se guardan <b>únicamente en este dispositivo</b> y no se envían a ningún servidor.`;
   show(`<div class="gate-card">
     <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">${esc(CONFIG.consultora.nombre)} · Evaluación final</p><h1>IDENTIFICACIÓN DEL PARTICIPANTE</h1><p class="muted">Fatiga y conducción segura – Vehículos livianos y pesados<br>Dicta: ${esc(capacitador())}</p></div></div>
+    ${jornadaBanner()}
     <form id="idForm" novalidate>
       <div class="form-grid">
         ${field('legajo','LEGAJO',true,v.legajo,errs.legajo,CONFIG.legajo.descripcion)}
         <div></div>
         ${field('nombre','NOMBRE',true,v.nombre,errs.nombre,'','given-name')}
         ${field('apellido','APELLIDO',true,v.apellido,errs.apellido,'','family-name')}
-        ${field('empresa','EMPRESA',false,v.empresa ?? CONFIG.organizacion.empresa,'','','organization')}
+        ${field('empresa','EMPRESA',false,v.empresa ?? (JORNADA ? JORNADA.empresa : CONFIG.organizacion.empresa),'','','organization')}
         ${field('sector','SECTOR / ÁREA',false,v.sector,'')}
         <fieldset class="field full"><legend>TIPO DE VEHÍCULO</legend><div class="radios">${TIPOS.map(t => `<label class="radio"><input type="radio" name="tipoVehiculo" value="${t}" ${v.tipoVehiculo === t ? 'checked' : ''}> ${t}</label>`).join('')}</div></fieldset>
       </div>
@@ -84,9 +104,77 @@ function viewConfirm(){
     State.recordId = uid();
     State.training.fechaInicio = new Date().toISOString();
     SessionReg.add(State.participant.legajo);
+    State.token = randomToken();
+    State.jornada = JORNADA ? JORNADA.codigo : null;
     persist();
-    Sync.send(buildRecord());   // registra el ingreso (estado SIN COMPLETAR)
+    if(CONFIG.asistencia && CONFIG.asistencia.firmaObligatoria) viewFirma();
+    else { sendAll(); viewWelcome(); }
+  };
+}
+
+/* ---------- Jornada ---------- */
+function jornadaBanner(){
+  if(JORNADA && !JORNADA.offline) return `<div class="jornada-chip">${ic('calendar')}<div><small>Jornada ${esc(JORNADA.codigo)}</small><b>${esc(JORNADA.empresa)}</b>${JORNADA.lugar ? ` · ${esc(JORNADA.lugar)}` : ''} · ${fmtDate(JORNADA.fecha + 'T12:00:00')}</div></div>`;
+  if(JORNADA_ERR) return fb('warn', 'Atención', JORNADA_ERR);
+  return '';
+}
+
+/* ---------- 2b. Registro de asistencia con firma ---------- */
+function viewFirma(){
+  progress(10);
+  const p = State.participant, hoy = fmtDate(new Date());
+  show(`<div class="gate-card">
+    <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">Registro de asistencia</p><h1>Firmá tu asistencia</h1><p class="muted">Usá el dedo (o el mouse) dentro del recuadro.</p></div></div>
+    <p class="declaracion">Yo, <b>${esc(fullName())}</b>, legajo <b>${esc(p.legajo)}</b>, declaro haber asistido a la capacitación <b>“${esc(CONFIG.capacitacion.nombre)}”</b>, dictada por ${esc(capacitador())} (${esc(CONFIG.consultora.nombre)}), el día ${hoy}${JORNADA && JORNADA.empresa ? ` para ${esc(JORNADA.empresa)}` : ''}.</p>
+    <div class="sigpad-wrap"><canvas id="sigpad" class="sigpad" aria-label="Recuadro para firmar"></canvas><span class="sig-hint" id="sigHint">Firmá acá</span></div>
+    <div class="actions">
+      <button class="btn ghost" id="sigClear">${ic('refresh')} Borrar</button>
+      <button class="btn primary lg" id="sigOk" disabled>${ic('check')} FIRMAR Y CONTINUAR</button>
+    </div>
+  </div>`);
+  const pad = SignaturePad($('#sigpad'), () => { $('#sigOk').disabled = !pad.hasInk(); $('#sigHint').hidden = pad.hasInk(); });
+  $('#sigClear').onclick = () => pad.clear();
+  $('#sigOk').onclick = () => {
+    if(!pad.hasInk()) return;
+    State.firma = pad.export();
+    persist();
+    sendAll();
     viewWelcome();
+  };
+}
+/** Recuadro de firma: dibuja en claro sobre la pantalla y exporta en tinta oscura (PNG transparente). */
+function SignaturePad(canvas, onChange){
+  const strokes = []; let cur = null;
+  const ctx = canvas.getContext('2d');
+  function size(){
+    const r = canvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw();
+  }
+  function line(c, pts, color, w){
+    c.strokeStyle = color; c.lineWidth = w; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.beginPath(); pts.forEach((pt, i) => i ? c.lineTo(pt[0], pt[1]) : c.moveTo(pt[0], pt[1]));
+    if(pts.length === 1) c.lineTo(pts[0][0] + .1, pts[0][1] + .1);
+    c.stroke();
+  }
+  function draw(){ const r = canvas.getBoundingClientRect(); ctx.clearRect(0, 0, r.width, r.height); strokes.forEach(s => line(ctx, s, '#f3f5f7', 2.6)); }
+  function pos(e){ const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); cur = [pos(e)]; strokes.push(cur); draw(); onChange(); });
+  canvas.addEventListener('pointermove', e => { if(!cur) return; e.preventDefault(); cur.push(pos(e)); draw(); });
+  const end = () => { if(cur){ cur = null; onChange(); } };
+  canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end); canvas.addEventListener('pointerleave', end);
+  window.addEventListener('resize', size);
+  size();
+  return {
+    hasInk(){ return strokes.some(s => s.length > 3) || strokes.length > 1; },
+    clear(){ strokes.length = 0; draw(); onChange(); },
+    export(){
+      const r = canvas.getBoundingClientRect(), W = 600, H = Math.round(600 * r.height / r.width);
+      const out = document.createElement('canvas'); out.width = W; out.height = H;
+      const c = out.getContext('2d'), k = W / r.width;
+      strokes.forEach(s => line(c, s.map(pt => [pt[0] * k, pt[1] * k]), '#111418', 2.6 * k));
+      return out.toDataURL('image/png');
+    }
   };
 }
 
@@ -160,10 +248,12 @@ function paintSync(){
   const M = {
     local:   ['', `${ic('info')} <span>Prototipo: el resultado quedó guardado en este dispositivo. La planilla central todavía no está conectada.</span>`],
     sending: ['', `${ic('refresh')} <span>Enviando resultado…</span>`],
-    sent:    ['ok', `${ic('check')} <span>Resultado enviado al registro de ${esc(CONFIG.consultora.nombre)}.</span>`],
+    sent:    ['ok', `${ic('check')} <span>Resultado registrado en ${esc(CONFIG.consultora.nombre)}${State.verificacion ? ` · Código de verificación: <b>${esc(State.verificacion)}</b>` : ''}.</span>`],
+    queued:  ['warn', `${ic('clock')} <span>Sin conexión: el resultado quedó guardado en este dispositivo y se enviará automáticamente cuando vuelva la señal.</span>`],
     error:   ['warn', `${ic('alert')} <span>No se pudo enviar el resultado (¿sin conexión?). Quedó guardado en este dispositivo.</span><button class="btn sm ghost" id="syncRetry">${ic('refresh')} Reintentar envío</button>`]
   }[syncState] || ['', ''];
   box.className = 'sync ' + M[0]; box.innerHTML = M[1]; box.hidden = !M[1];
+  const vc = $('#verCode'); if(vc && State.verificacion) vc.textContent = State.verificacion;
   const r = $('#syncRetry'); if(r) r.onclick = sendNow;
 }
 function viewResult(){
@@ -200,6 +290,7 @@ function viewResult(){
       <div><dt>Fecha</dt><dd>${fmtDate(State.training.fechaFin || new Date())}</dd></div>
       <div><dt>Capacitador</dt><dd>${esc(capacitador())}</dd></div>
       <div><dt>Dictada por</dt><dd>${esc(CONFIG.consultora.nombre)}</dd></div>
+      <div><dt>Código de verificación</dt><dd id="verCode">${State.verificacion ? esc(State.verificacion) : '<span class="dim">Se asigna al registrarse</span>'}</dd></div>
     </dl>
     <div class="actions"><button class="btn green" id="rPrint">${ic('print')} IMPRIMIR / GUARDAR CONSTANCIA</button></div>
     <p class="sm dim" style="margin-top:8px">En el celular, elegí “Guardar como PDF” en las opciones de impresión.</p>
@@ -221,7 +312,7 @@ function finalizar(){
   State.training.duracion = minutesBetween(State.training.fechaInicio, State.training.fechaFin);
   State.finalizada = true;
   persist();
-  Sync.send(buildRecord());
+  sendAll();
   viewFin();
 }
 function viewFin(){
@@ -245,4 +336,16 @@ function viewFin(){
 
 /* ---------- Inicio ---------- */
 window.addEventListener('beforeunload', e => { if(State.recordId && !State.quiz.done){ e.preventDefault(); e.returnValue = ''; } });
-(function init(){ initBrand(); viewForm({}, {}); })();
+(async function init(){
+  initBrand();
+  const j = jornadaParam();
+  if(j && Central.enabled()){
+    show(`<div class="gate-card welcome"><div class="spinner" aria-hidden="true"></div><p class="muted">Cargando la jornada…</p></div>`);
+    try{
+      JORNADA = await Central.jornadaPublica(j);
+      if(!JORNADA) JORNADA_ERR = 'El código de jornada no existe. Consultá al capacitador.';
+      else if(!JORNADA.abierta){ JORNADA_ERR = 'Esta jornada ya está cerrada. Consultá al capacitador.'; JORNADA = null; }
+    }catch(e){ JORNADA_ERR = Central.isNetworkError(e) ? 'Sin conexión: tu resultado se guardará en este dispositivo y se enviará cuando vuelva la señal.' : 'No se pudo cargar la jornada.'; JORNADA = { codigo:j, empresa:'', offline:true }; }
+  }
+  viewForm({}, {});
+})();

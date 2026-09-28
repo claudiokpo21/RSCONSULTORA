@@ -1,7 +1,7 @@
 'use strict';
 /* vivo-core.js — NÚCLEO DEL DESAFÍO EN VIVO (compartido por vivo.html y jugar.html)
    Transporte en tiempo real:
-     · Supabase Realtime (Broadcast) si CONFIG.vivo tiene supabaseUrl + supabaseAnonKey.
+     · Supabase Realtime (Broadcast) si CONFIG.supabase está configurado (cliente compartido de central.js).
        No usa tablas: los mensajes pasan por el canal y no quedan guardados.
      · BroadcastChannel del navegador (modo demostración): comunica pestañas del mismo navegador.
    Protocolo (todos los mensajes llevan { t: tipo }):
@@ -9,7 +9,7 @@
      anfitrión → todos:  state { phase, ... } · welcome { pid, name } · reject { pid, reason }
    RS Consultora · Fatiga y Conducción Segura */
 
-const VIVO = Object.assign({ supabaseUrl:'', supabaseAnonKey:'', tiempoPregunta:20, puntosBase:500, puntosVelocidad:500, maxParticipantes:150 }, CONFIG.vivo || {});
+const VIVO = Object.assign({ tiempoPregunta:20, puntosBase:500, puntosVelocidad:500, maxParticipantes:150 }, CONFIG.vivo || {});
 const EQUIPOS = [ { id:'Livianos', icon:'car', label:'Equipo Livianos' }, { id:'Pesados', icon:'truck', label:'Equipo Pesados' } ];
 const OPC = [
   { col:'#f5b301', ink:'#14161a', shape:'<path d="M12 3l10 18H2z"/>' },
@@ -20,7 +20,7 @@ const OPC = [
 function shapeSVG(i){ return `<svg class="shape" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">${OPC[i].shape}</svg>`; }
 function tipoLabel(t){ return { quiz:'Pregunta', vf:'Mito o realidad', encuesta:'Encuesta anónima' }[t] || 'Pregunta'; }
 function itemOptions(it){ return it.tipo === 'vf' ? ['MITO','REALIDAD'] : it.o; }
-function liveMode(){ return (VIVO.supabaseUrl && VIVO.supabaseAnonKey && window.supabase && window.supabase.createClient) ? 'supabase' : 'local'; }
+function liveMode(){ return (typeof rsClient === 'function' && rsClient()) ? 'supabase' : 'local'; }
 function playUrl(code){ return new URL('jugar.html?sala=' + encodeURIComponent(code), location.href).href; }
 function ordinal(n){ return n + 'º'; }
 function vibrate(ms){ try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} }
@@ -30,8 +30,7 @@ function openChannel(code, onMsg, onStatus){
   const name = 'rs-vivo-' + code;
   const status = s => { try{ onStatus && onStatus(s); }catch(e){} };
   if(liveMode() === 'supabase'){
-    const client = window.__rsSb || (window.__rsSb = window.supabase.createClient(VIVO.supabaseUrl, VIVO.supabaseAnonKey, {
-      auth:{ persistSession:false, autoRefreshToken:false }, realtime:{ params:{ eventsPerSecond:20 } } }));
+    const client = rsClient();
     const ch = client.channel(name, { config:{ broadcast:{ self:false, ack:false } } });
     let ready = false; const queue = [];
     ch.on('broadcast', { event:'msg' }, ({ payload }) => { if(payload && payload.t) onMsg(payload); });
@@ -56,5 +55,5 @@ function openChannel(code, onMsg, onStatus){
 function modeBanner(){
   return liveMode() === 'supabase'
     ? ''
-    : fb('info','Modo demostración','Sin Supabase configurado, el desafío funciona con participantes simulados o con pestañas de este mismo navegador. Para que los trabajadores jueguen desde sus celulares, completá CONFIG.vivo en assets/config.js (ver README).');
+    : fb('info','Modo demostración','Sin Supabase configurado, el desafío funciona con participantes simulados o con pestañas de este mismo navegador. Para que los trabajadores jueguen desde sus celulares, completá CONFIG.supabase en assets/config.js (ver README).');
 }

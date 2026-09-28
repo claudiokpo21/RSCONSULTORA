@@ -1,0 +1,70 @@
+/* informe.css — Informe A4 para la empresa cliente (pantalla = vista previa; impresión = A4)
+   RS Consultora */
+:root{ --ink:#1b1f24; --muted:#5b6470; --line:#dfe3e8; --amber:#d99a00; --paper:#ffffff; --desk:#2a2f36; }
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--desk);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.toolbar{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 18px;background:#0f1216;color:#f3f5f7;border-bottom:1px solid #303a46}
+.toolbar b{font-size:.95rem}
+.toolbar .tb-actions{display:flex;gap:8px;flex-wrap:wrap}
+.toolbar button,.toolbar a{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 14px;border-radius:9px;border:1px solid #303a46;background:#222a34;color:#f3f5f7;font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+.toolbar .primary{background:#f5b301;border-color:#f5b301;color:#14161a}
+.toolbar .ic{width:1.1em;height:1.1em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#report{padding:22px 12px 40px}
+.sheet{background:var(--paper);width:210mm;min-height:297mm;margin:0 auto 18px;padding:14mm 15mm;box-shadow:0 10px 40px rgba(0,0,0,.35);position:relative}
+.r-msg{min-height:auto;text-align:center}
+.r-head{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--amber);padding-bottom:4mm;margin-bottom:7mm}
+.r-brand{display:flex;align-items:center;gap:3mm}
+.r-brand b{display:block;font-size:12.5pt}
+.r-brand small{display:block;font-size:8.5pt;color:var(--muted)}
+.r-mark{display:grid;place-items:center;width:11mm;height:11mm;border-radius:2mm;background:#f5b301;color:#111;font-family:Georgia,"Times New Roman",serif;font-weight:900;font-size:13pt}
+.r-meta{font-size:8.5pt;color:var(--muted);text-align:right}
+.r-title{font-family:Georgia,"Times New Roman",serif;font-size:22pt;letter-spacing:.5px;margin:0}
+.r-sub{margin:1mm 0 6mm;color:var(--muted);font-size:11pt}
+.r-h2{font-size:12.5pt;margin:7mm 0 2.5mm;padding-bottom:1.5mm;border-bottom:1px solid var(--line)}
+.r-h3{font-size:10.5pt;margin:4mm 0 2mm}
+.r-note{font-size:8.8pt;color:var(--muted);margin:0 0 3mm}
+.r-empty{color:var(--muted);font-style:italic}
+.r-data{width:100%;border-collapse:collapse;font-size:9.8pt}
+.r-data th,.r-data td{border:1px solid var(--line);padding:2.2mm 3mm;text-align:left;vertical-align:top}
+.r-data th{background:#f4f6f8;width:22%;font-weight:600;color:#333}
+.r-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm}
+.r-kpi{border:1px solid var(--line);border-radius:2mm;padding:3mm}
+.r-kpi span{display:block;font-size:8.5pt;color:var(--muted)}
+.r-kpi b{display:block;font-size:20pt;line-height:1.15;margin-top:1mm}
+.r-kpi small{display:block;font-size:8pt;color:var(--muted)}
+.chart{width:100%;height:auto;display:block;font-family:"Segoe UI",system-ui,Arial,sans-serif}
+.r-two{display:grid;grid-template-columns:1fr 1fr;gap:8mm}
+.r-mini{width:100%;border-collapse:collapse;font-size:9.8pt}
+.r-mini td{border-bottom:1px solid var(--line);padding:1.8mm 1mm}
+.r-mini td:last-child{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.r-list{margin:0;padding-left:5mm;font-size:10pt}
+.r-list li{margin-bottom:2.5mm}
+.r-list span{color:var(--muted);font-size:9pt}
+.r-conc{font-size:10.3pt;line-height:1.55}
+.r-sign{display:flex;justify-content:flex-end;margin-top:16mm}
+.r-sign div{width:75mm;text-align:center;font-size:9pt}
+.r-sign .line{display:block;border-top:1px solid #333;margin-bottom:2mm}
+.r-att{width:100%;border-collapse:collapse;font-size:9pt}
+.r-att th,.r-att td{border:1px solid var(--line);padding:1.6mm 2mm;text-align:left;vertical-align:middle}
+.r-att th{background:#f4f6f8;font-weight:600}
+.r-att thead{display:table-header-group}
+.r-att tr{break-inside:avoid;page-break-inside:avoid}
+.sigcell{width:36mm;height:13mm;text-align:center!important}
+.sigcell img{max-height:11mm;max-width:34mm;display:block;margin:0 auto}
+.nofirma{color:#a33;font-size:8pt}
+@media screen and (max-width:820px){
+  #report{padding:10px 0 24px}
+  .sheet{width:100%;min-height:auto;padding:18px 16px;box-shadow:none;margin-bottom:10px}
+  .r-kpis{grid-template-columns:1fr 1fr}
+  .r-two{grid-template-columns:1fr}
+  .r-att{font-size:8pt}
+}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  body{background:#fff}
+  .toolbar{display:none}
+  #report{padding:0}
+  .sheet{box-shadow:none;margin:0;width:210mm;min-height:297mm;page-break-after:always;break-after:page}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+}
