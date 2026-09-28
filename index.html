@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fatiga y Conducción Segura · RS Consultora</title>
+<meta name="description" content="Capacitación de Higiene y Seguridad: Fatiga y Conducción Segura – Vehículos livianos y pesados. RS Consultora · Lic. Roberto Seguin.">
+<meta name="theme-color" content="#0f1216">
+<meta property="og:title" content="Fatiga y Conducción Segura · RS Consultora">
+<meta property="og:description" content="Capacitación interactiva de RS Consultora, dictada por el Lic. Roberto Seguin.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand"><span id="brandMark"></span><div><strong id="brandName">RS CONSULTORA</strong><small>Higiene y Seguridad</small></div></div>
+    <div class="top-actions"><span class="proto-badge">PROTOTIPO</span></div>
+  </header>
+  <main class="page-main" id="home"></main>
+  <footer class="site-foot"><span id="footTxt"></span><a href="admin.html">Administración</a></footer>
+</div>
+<script src="assets/qrcode.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/content.js"></script>
+<script src="assets/common.js"></script>
+<script>
+'use strict';
+(function renderHome(){
+  initBrand();
+  const c = CONFIG.consultora, url = evalUrl();
+  $('#home').innerHTML = `
+  <section class="hero">
+    <div>
+      <span class="cover-tag">${ic('shield')} ${esc(c.nombre)} · Seguridad vial laboral</span>
+      <h1 class="cover-title">FATIGA Y<br><span>CONDUCCIÓN SEGURA</span></h1>
+      <p class="cover-sub">Vehículos livianos y pesados</p>
+      <p class="muted">Capacitación de Higiene y Seguridad con dictado presencial y evaluación individual desde el celular o la computadora de cada participante.</p>
+      ${instructorCard('Dicta la capacitación')}
+    </div>
+    <div class="cover-art">${ART_ROAD}</div>
+  </section>
+  <div class="grid g4">
+    <a class="mode-card" href="capacitacion.html">${ic('play','xl')}<p class="eyebrow">Para el capacitador</p><h2>Presentación</h2><p class="muted">Pantallas interactivas para proyectar en grupo: conceptos, señales de alerta, casos prácticos y mitos. Al final muestra el QR de la evaluación.</p><span class="go">Abrir presentación ${ic('arrow')}</span></a>
+    <a class="mode-card" href="vivo.html">${ic('zap','xl')}<p class="eyebrow">Nuevo · Para toda la sala</p><h2>Desafío en vivo</h2><p class="muted">Preguntas en tiempo real: cada trabajador responde desde su celular y en la pantalla se ven los votos, las posiciones y el podio.</p><span class="go">Abrir desafío ${ic('arrow')}</span></a>
+    <a class="mode-card" href="evaluacion.html">${ic('clipboard','xl')}<p class="eyebrow">Para cada participante</p><h2>Evaluación</h2><p class="muted">Identificación, ${CONTENT.quiz.length} preguntas con explicación, resultado y constancia. Pensada para el celular.</p><span class="go">Rendir evaluación ${ic('arrow')}</span></a>
+    <div class="mode-card" style="align-items:center;text-align:center"><p class="eyebrow">Acceso rápido</p><div class="qr-box" style="width:170px">${qrSVG(url)}</div><p class="sm muted">Escaneá para abrir la evaluación</p></div>
+  </div>`;
+  $('#footTxt').textContent = `${c.nombre} · ${capacitador()}`;
+})();
+</script>
+</body>
+</html>

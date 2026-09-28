@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desafío en vivo · RS Consultora</title>
+<meta name="description" content="Capacitación de Higiene y Seguridad: Fatiga y Conducción Segura – Vehículos livianos y pesados. RS Consultora · Lic. Roberto Seguin.">
+<meta name="theme-color" content="#0f1216">
+<meta property="og:title" content="Desafío en vivo · RS Consultora">
+<meta property="og:description" content="Capacitación interactiva de RS Consultora, dictada por el Lic. Roberto Seguin.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/vivo.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span id="brandMark"></span><div><strong id="brandName">RS CONSULTORA</strong><small>Desafío en vivo · Fatiga y Conducción Segura</small></div></div>
+    <div class="top-actions">
+      <span class="mode-chip">Desafío en vivo</span>
+      <span class="room-chip" id="roomChip">Sala</span>
+      <span class="conn wait" id="connDot" title="Conectando…"></span>
+      <button class="icon-btn" id="btnFull" title="Pantalla completa (tecla F)" aria-label="Pantalla completa"><svg class="ic" aria-hidden="true"><use href="#i-move"/></svg></button>
+    </div>
+  </header>
+  <div class="progress" role="progressbar" aria-label="Progreso del desafío" aria-valuemin="0" aria-valuemax="100" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+  <main id="stage" class="stage" tabindex="-1" aria-live="polite"></main>
+</div>
+<dialog id="dlg"></dialog>
+<script src="assets/qrcode.js"></script>
+<script src="assets/supabase.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/content.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/vivo-preguntas.js"></script>
+<script src="assets/vivo-core.js"></script>
+<script src="assets/vivo-host.js"></script>
+</body>
+</html>

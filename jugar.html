@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jugar · Desafío en vivo · RS Consultora</title>
+<meta name="description" content="Capacitación de Higiene y Seguridad: Fatiga y Conducción Segura – Vehículos livianos y pesados. RS Consultora · Lic. Roberto Seguin.">
+<meta name="theme-color" content="#0f1216">
+<meta property="og:title" content="Jugar · Desafío en vivo · RS Consultora">
+<meta property="og:description" content="Capacitación interactiva de RS Consultora, dictada por el Lic. Roberto Seguin.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/vivo.css">
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand"><span id="brandMark"></span><div><strong id="brandName">RS CONSULTORA</strong><small>Desafío en vivo</small></div></div>
+    <div class="top-actions"><div class="who" id="whoChip" hidden></div></div>
+  </header>
+  <div class="progress" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
+  <main id="view" class="page-main eval-main" aria-live="polite"></main>
+</div>
+<script src="assets/supabase.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/content.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/vivo-preguntas.js"></script>
+<script src="assets/vivo-core.js"></script>
+<script src="assets/vivo-player.js"></script>
+</body>
+</html>
