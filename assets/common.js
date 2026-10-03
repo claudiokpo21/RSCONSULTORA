@@ -206,6 +206,33 @@ function toggleFullscreen(){
   try{ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }catch(e){}
 }
 
+/* ---------- Sonido de alarma (simulador de microsueño) ----------
+   Se crea con el toque del usuario (los navegadores bloquean el audio sin interacción).
+   Devuelve una función que, al llamarla, hace sonar 3 pitidos dobles tipo despertador
+   y vibra en los celulares que lo permiten. Sin archivos de audio: se genera en el navegador. */
+function despertador(){
+  let ctx = null;
+  try{ const AC = window.AudioContext || window.webkitAudioContext; if(AC){ ctx = new AC(); if(ctx.state === 'suspended') ctx.resume(); } }catch(e){ ctx = null; }
+  return function(){
+    try{ navigator.vibrate && navigator.vibrate([180, 90, 180, 90, 180]); }catch(e){}
+    if(!ctx) return;
+    try{
+      const t0 = ctx.currentTime + 0.02, vol = ctx.createGain();
+      vol.gain.value = 0.22; vol.connect(ctx.destination);
+      for(let i = 0; i < 3; i++){
+        [0, 0.13].forEach((d, k) => {
+          const o = ctx.createOscillator(), g = ctx.createGain(), t = t0 + i * 0.42 + d;
+          o.type = 'square'; o.frequency.value = k ? 1320 : 990;
+          g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.01);
+          g.gain.setValueAtTime(1, t + 0.09); g.gain.linearRampToValueAtTime(0, t + 0.11);
+          o.connect(g); g.connect(vol); o.start(t); o.stop(t + 0.12);
+        });
+      }
+      setTimeout(() => { try{ ctx.close(); }catch(e){} }, 2000);
+    }catch(e){}
+  };
+}
+
 const TIPOS = ['Vehículo liviano','Vehículo pesado','Ambos'];
 function brandMarkHTML(){ const logo = CONFIG.organizacion.logo; return logo ? `<img class="brand-logo" src="${esc(logo)}" alt="${esc(CONFIG.consultora.nombre)}">` : `<span class="brand-mark rs" aria-label="${esc(CONFIG.consultora.nombre)}">${esc(CONFIG.consultora.iniciales)}</span>`; }
 
@@ -218,7 +245,8 @@ function bindReveal(r){ $$('.reveal', r).forEach(b => b.onclick = () => b.setAtt
 /* =====================================================================
    CONSTANCIA (impresión A4)
    ===================================================================== */
-function printCertificate(){
+/** Arma la constancia en el área de impresión (sin imprimir). */
+function renderCertificate(){
   const p = State.participant, e = State.evaluation, t = State.training, o = CONFIG.organizacion;
   const fecha = fmtDate(t.fechaFin || new Date());
   $('#printArea').innerHTML = `<div class="cert">
@@ -233,7 +261,7 @@ function printCertificate(){
       ${p.empresa ? `<tr><td>Empresa</td><td>${esc(p.empresa)}</td></tr>` : ''}
       ${p.sector ? `<tr><td>Sector / Área</td><td>${esc(p.sector)}</td></tr>` : ''}
       ${p.tipoVehiculo ? `<tr><td>Tipo de vehículo</td><td>${esc(p.tipoVehiculo)}</td></tr>` : ''}
-      <tr><td>Resultado</td><td>${e.porcentaje} % (${e.correctas} de ${e.preguntas} respuestas correctas)</td></tr>
+      ${CONFIG.reportes && CONFIG.reportes.mostrarNotaEnCertificado ? `<tr><td>Resultado</td><td>${e.porcentaje} % (${e.correctas} de ${e.preguntas} respuestas correctas)</td></tr>` : ''}
       <tr><td>Estado</td><td class="ok">APROBADO</td></tr>
       <tr><td>Fecha</td><td>${fecha}</td></tr>
       <tr><td>Capacitador</td><td>${esc(capacitador())} · ${esc(CONFIG.consultora.nombre)}</td></tr>
@@ -243,6 +271,9 @@ function printCertificate(){
     <div class="foot">Constancia generada el ${fmtDate(new Date())} a las ${fmtTime(new Date())}. Criterio de aprobación: ${CONFIG.aprobacion.porcentajeMinimo} %. El resultado refleja la comprensión de los contenidos de la capacitación y no constituye una evaluación médica ni de aptitud laboral.</div>
   </div>`;
   document.body.classList.add('print-cert');
+}
+function printCertificate(){
+  renderCertificate();
   const done = () => { document.body.classList.remove('print-cert'); window.removeEventListener('afterprint', done); };
   window.addEventListener('afterprint', done);
   setTimeout(() => window.print(), 50);

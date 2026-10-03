@@ -614,3 +614,8 @@ a.btn.green{color:#0c1510}
 .diag-points .ic{color:var(--amber);margin-top:2px}
 .opt.picked{border-color:var(--amber);background:linear-gradient(0deg,var(--amber-soft),var(--amber-soft)),var(--panel)}
 .qprog i.done{background:var(--steel)}
+
+/* Simulador de microsueño: destello al "despertar" */
+.ms-viz.wake::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 6px rgba(229,72,77,.9);background:rgba(229,72,77,.18);animation:msWake 1.2s ease-out forwards;pointer-events:none}
+@keyframes msWake{0%,40%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion: reduce){ .ms-viz.wake::after{animation:none;opacity:.6} }

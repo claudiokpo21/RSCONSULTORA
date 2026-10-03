@@ -365,6 +365,15 @@ function bindOpinion(){
   };
 }
 
+/* Si se imprime con el menú del navegador (Ctrl+P, Compartir → Imprimir) estando aprobado,
+   se imprime la constancia en una hoja en lugar de la pantalla completa. */
+window.addEventListener('beforeprint', () => {
+  if(document.body.classList.contains('print-cert') || !State.recordId || State.evaluation.estado !== 'APROBADO') return;
+  renderCertificate();
+  const done = () => { document.body.classList.remove('print-cert'); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+});
+
 /* ---------- Inicio ---------- */
 window.addEventListener('beforeunload', e => { if(State.recordId && !State.quiz.done){ e.preventDefault(); e.returnValue = ''; } });
 (async function init(){

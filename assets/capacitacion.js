@@ -219,13 +219,14 @@ const SLIDES = [
     bind('msSpeed', v => speed = v); bind('msSec', v => secs = v); calc();
     $('#msRun', r).onclick = () => {
       const btn = $('#msRun', r), total = meters(); btn.disabled = true;
-      if(REDUCED){ dist.textContent = total + ' m'; status.textContent = 'Recorridos sin control'; btn.disabled = false; return; }
+      const alarma = despertador();   // se prepara con el toque (requisito de los navegadores para reproducir sonido)
+      if(REDUCED){ dist.textContent = total + ' m'; status.textContent = 'Recorridos sin control'; btn.disabled = false; alarma(); return; }
       viz.classList.add('closed'); status.textContent = 'Microsueño'; const t0 = performance.now();
       const step = now => {
         if(!viz.isConnected) return;
         const p = Math.min(1, (now - t0) / (secs * 1000)); dist.textContent = Math.round(total * p) + ' m';
         if(p < 1) requestAnimationFrame(step);
-        else { viz.classList.remove('closed'); status.textContent = `${secs} s sin control`; btn.disabled = false; }
+        else { viz.classList.remove('closed'); viz.classList.add('wake'); setTimeout(() => viz.classList.remove('wake'), 1200); status.textContent = `${secs} s sin control`; btn.disabled = false; alarma(); }
       };
       requestAnimationFrame(step);
     };

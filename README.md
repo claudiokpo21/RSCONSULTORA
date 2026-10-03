@@ -35,6 +35,7 @@ assets/informe-lib.js · informe.js · documento.js · informe.css · documento.
 assets/xlsx-lite.js · reportes-excel.js  ← Excel con formato (generado en el navegador, sin librerías externas)
 assets/diagnostico.js  ← diagnóstico inicial
 supabase/02_reportes.sql  ← actualización de la base para los reportes (ejecutar una vez)
+supabase/04_registro_individual.sql  ← firma en certificados de evaluaciones hechas sin código de jornada (ejecutar una vez)
 apps-script/Code.gs  ← receptor de resultados para Google Sheets (opcional)
 vercel.json          ← URLs limpias y encabezados de seguridad
 ```
@@ -117,6 +118,8 @@ Mientras no se ejecute, el sistema funciona en **modo compatible**: tablero, map
 
 - **Informe individual:** datos, resultado, aciertos por tema, firma, historial con RS, vigencia y recomendación. Desde *Resultados* (ícono de persona) o todos los de una jornada.
 - **Certificados:** *certificado de aprobación* (criterio alcanzado) o *constancia de asistencia* (firmó pero no aprobó). Con QR de verificación y fecha de vencimiento. Uno por trabajador (*Resultados*, ícono de medalla) o todos los de una jornada.
+- **Nota en el certificado:** `config.js → reportes.mostrarNotaEnCertificado` (por defecto `false`: el certificado dice *Aprobado* sin el porcentaje). El porcentaje sigue en el informe individual, el grupal y Resultados.
+- **Una hoja:** la constancia del trabajador y los certificados entran en una hoja A4 o Carta aunque el navegador agregue sus márgenes. Si el trabajador imprime con el menú del navegador (en vez del botón), igual sale la constancia.
 - **Vigencia:** `config.js → reportes.vigenciaMeses` (12 por defecto; 0 = sin vencimiento) y `avisoVencimientoDias` (60). Es un criterio de RS Consultora, **no un plazo legal**.
 - **Informe por empresa:** todas sus jornadas, evolución, resultados por sector y vehículo, mapa de riesgo, satisfacción, cobertura de nómina, vencidos, por vencer y pendientes.
 - **Nómina:** *Empresas → Nómina* → pegar o elegir un CSV con columnas `legajo;apellido;nombre;sector`. Se usa solo para calcular cobertura y pendientes.

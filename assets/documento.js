@@ -28,12 +28,12 @@ function certHTML(r, j){
       <h1 class="c-name">${esc(nombre)}</h1>
       <p class="c-id">Legajo ${esc(r.legajo)}${emp ? ` · ${esc(emp)}` : ''}${r.sector ? ` · ${esc(r.sector)}` : ''}</p>
       <p class="c-body">${ap
-        ? `aprobó la capacitación <b>“${esc((j && j.capacitacion) || CONFIG.capacitacion.nombre)}”</b>, con un resultado de <b>${r.porcentaje} %</b> en la evaluación final (criterio de aprobación: ${r.criterio || MIN} %).`
+        ? `aprobó la capacitación <b>“${esc((j && j.capacitacion) || CONFIG.capacitacion.nombre)}”</b>${REP.mostrarNotaEnCertificado ? `, con un resultado de <b>${r.porcentaje} %</b> en la evaluación final (criterio de aprobación: ${r.criterio || MIN} %)` : ', habiendo aprobado la evaluación final'}.`
         : `asistió a la capacitación <b>“${esc((j && j.capacitacion) || CONFIG.capacitacion.nombre)}”</b>.`}</p>
       <table class="c-data">
         <tr><th>Fecha</th><td>${fdate(fecha)}</td><th>Modalidad</th><td>Presencial</td></tr>
         <tr><th>Lugar</th><td>${esc((j && j.lugar) || '–')}</td><th>Capacitador</th><td>${esc(cap)}</td></tr>
-        ${ap ? `<tr><th>Resultado</th><td>${r.porcentaje} % (${r.correctas ?? '–'} de ${r.preguntas ?? CONTENT.quiz.length})</td><th>Válido hasta</th><td>${vence ? fmtDate(vence) : 'Sin vencimiento'}</td></tr>` : ''}
+        ${ap ? `<tr><th>${REP.mostrarNotaEnCertificado ? 'Resultado' : 'Estado'}</th><td>${REP.mostrarNotaEnCertificado ? `${r.porcentaje} % (${r.correctas ?? '–'} de ${r.preguntas ?? CONTENT.quiz.length})` : 'Aprobado'}</td><th>Válido hasta</th><td>${vence ? fmtDate(vence) : 'Sin vencimiento'}</td></tr>` : ''}
       </table>
       ${ap ? '' : `<p class="c-note">Esta constancia acredita la asistencia a la capacitación. No acredita la aprobación de la evaluación.</p>`}
       <div class="c-signs">
@@ -41,7 +41,7 @@ function certHTML(r, j){
         <div><span class="c-sig"></span><span class="c-line">${esc(cap)}<br>${esc(CONFIG.consultora.rol)} · ${esc(CONFIG.consultora.nombre)}</span></div>
       </div>
       ${r.verificacion ? `<div class="c-verify"><div class="c-qr">${qrSVG(verifyUrl(r.verificacion))}</div><p><b>Documento verificable.</b> Escaneá el código QR o ingresá en ${esc(new URL('verificar.html', location.href).href.replace(/^https?:\/\//, ''))} el código <b>${esc(r.verificacion)}</b>.</p></div>` : ''}
-      <p class="c-foot">Emitido el ${fmtDate(new Date())}.${ap && REP.vigenciaMeses ? ` La vigencia de ${REP.vigenciaMeses} meses es un criterio de ${esc(CONFIG.consultora.nombre)}, no un plazo legal.` : ''} El resultado refleja la comprensión de los contenidos y no constituye una evaluación médica ni de aptitud laboral.</p>
+      <p class="c-foot">Emitido el ${fmtDate(new Date())}.${ap && REP.vigenciaMeses ? ` La vigencia de ${REP.vigenciaMeses} meses es un criterio de ${esc(CONFIG.consultora.nombre)}, no un plazo legal.` : ''} ${ap ? 'La aprobación refleja' : 'La capacitación aborda'} la comprensión de los contenidos y no constituye una evaluación médica ni de aptitud laboral.</p>
     </div>
   </section>`;
 }
@@ -233,6 +233,11 @@ function renderEmpresa(e, T){
     }else{
       const T = await Datos.tablero(); todos = T.registros;
       regs = T.registros.filter(r => r.id === RID); grupo = regs;
+      // Evaluación sin jornada: el resumen del tablero no trae la imagen de la firma; se pide el registro completo.
+      if(regs.length && RID){
+        try{ const full = await Central.rpc('rs_admin_registro', { p_id:RID }); if(full) regs = grupo = [{ ...regs[0], ...full, fecha:regs[0].fecha }]; }
+        catch(e){ if(!Datos.faltaFuncion(e)) throw e; }
+      }
     }
     if(RID) regs = regs.filter(r => r.id === RID);
     if(!regs.length) return msg('Registro no encontrado', 'El participante no existe o fue eliminado.');
