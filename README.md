@@ -12,8 +12,11 @@ Prototipo web estático (HTML + CSS + JavaScript, sin compilación), listo para 
 | `evaluacion.html` | Cada participante | Identificación, repaso opcional, 10 preguntas, resultado y constancia A4 (en el celular: "Guardar como PDF"). |
 | `vivo.html` | Capacitador (proyección) | **Desafío en vivo**: sala con QR y código, preguntas con temporizador, gráfico de respuestas, posiciones, equipos y podio. Tecla **F** = pantalla completa, **Espacio** = avanzar. |
 | `jugar.html` | Cada participante (celular) | Se une con el QR, elige equipo (Livianos / Pesados) y responde con botones de colores. Ve si acertó, sus puntos y su posición. |
-| `admin.html` | Capacitador | Login con usuario de Supabase. **Jornadas** (crear, links y QR, cerrar, informe) y **Resultados** (indicadores, filtros, CSV, eliminar). |
-| `informe.html` | Capacitador → empresa cliente | Informe A4 de la jornada: resumen, distribución de resultados, aciertos por tema, temas a reforzar, desafío en vivo, conclusión y planilla de asistencia con firmas. Se imprime o guarda como PDF. |
+| `admin.html` | Capacitador | Login con usuario de Supabase. **Tablero** general (indicadores, actividad por mes, temas difíciles, mapa de riesgo, empresas, antes/después, satisfacción, percepción de riesgo, Excel), **Jornadas** (crear, links y QR, cerrar, informes, certificados, compartir con el cliente), **Empresas** (nómina, cobertura, vencimientos, informe por empresa) y **Resultados** (filtros, CSV/Excel, certificado e informe individual de cada trabajador, eliminar). |
+| `informe.html` | Capacitador → empresa cliente | **Informe grupal** A4 de la jornada: resumen, distribución, aciertos por tema, temas a reforzar, mapa de riesgo por sector, antes y después, satisfacción, desafío en vivo, conclusión y planilla de asistencia con firmas. Con `?t=` es el **enlace para el cliente** (sin login, se puede desactivar). |
+| `documento.html` | Capacitador | Documentos A4: **certificado de aprobación** / **constancia de asistencia** (uno o todos los de una jornada), **informe individual** (uno o todos) e **informe por empresa**. |
+| `diagnostico.html` | Cada participante | **Diagnóstico inicial** anónimo (5 preguntas, antes de la charla), para medir el aprendizaje. |
+| `control.html` | Capacitador (su celular) | **Control remoto**: pasa las pantallas de la presentación, pone la pantalla en pausa y maneja el desafío en vivo (comenzar, mostrar resultado, siguiente, QR de la evaluación). Ve la respuesta correcta y la explicación para comentar. |
 | `verificar.html` | Cualquiera | Verifica una constancia con su código (o escaneando el QR impreso). |
 
 ```
@@ -25,6 +28,13 @@ assets/capacitacion.js · evaluacion.js · admin.js  ← lógica de cada página
 assets/qrcode.js     ← generador de QR (Kazuhiko Arase, licencia MIT), funciona sin internet
 assets/supabase.js   ← cliente de Supabase v2 (licencia MIT), incluido en el sitio
 assets/vivo-*.js · vivo.css  ← Desafío en vivo (preguntas, núcleo, anfitrión, participante)
+assets/remote.js · control.js · remote.css  ← Control remoto desde el celular del capacitador
+assets/analitica.js · datos.js  ← cálculos de reportes y carga de datos (compatible con la base sin actualizar)
+assets/admin-tablero.js · admin-empresas.js · tablero.css  ← Tablero y Empresas en Administración
+assets/informe-lib.js · informe.js · documento.js · informe.css · documento.css  ← informes y certificados A4
+assets/xlsx-lite.js · reportes-excel.js  ← Excel con formato (generado en el navegador, sin librerías externas)
+assets/diagnostico.js  ← diagnóstico inicial
+supabase/02_reportes.sql  ← actualización de la base para los reportes (ejecutar una vez)
 apps-script/Code.gs  ← receptor de resultados para Google Sheets (opcional)
 vercel.json          ← URLs limpias y encabezados de seguridad
 ```
@@ -81,11 +91,39 @@ Flujo sugerido: **Presentación → Desafío en vivo → Evaluación individual*
 - **Tiempo real:** usa Supabase Realtime (Broadcast) del proyecto *Inventario Clear*. No crea tablas ni guarda datos: los mensajes solo pasan por el canal. Se creó además el schema vacío `rs_capacitacion`, separado del inventario, reservado para un futuro registro central de evaluaciones.
 - **Configuración:** `assets/config.js` → `vivo` (URL, clave pública, segundos por pregunta, puntos). La clave *publishable* es pública por diseño; no hay que usar nunca la clave `service_role` en el sitio.
 - **Preguntas:** se editan en `assets/vivo-preguntas.js` (tipos: pregunta, mito o realidad, encuesta anónima).
+- **Cierre en dos pasos:** al terminar la última pregunta, la pantalla muestra el **resumen del grupo** (anónimo): la respuesta más elegida en cada pregunta, el porcentaje de aciertos, lo que el grupo tiene claro y lo que conviene reforzar. Con **Ver ganadores** aparece el **podio con el top 3**.
 - **Puntaje:** 500 por acierto + hasta 500 por rapidez. Los equipos se comparan por promedio, para que el más numeroso no tenga ventaja.
 - **Modo demostración:** el botón *Sumar participantes simulados* permite mostrarlo sin público. Sin Supabase configurado, también funciona entre pestañas del mismo navegador.
 - **Privacidad:** el nombre del participante solo se muestra en pantalla durante el juego. El capacitador puede descargar el resultado del desafío en CSV desde el podio final.
 - **Si no conecta:** verificar internet en la computadora que proyecta y, en Supabase → *Realtime → Settings*, que esté habilitado el acceso público a los canales (*Allow public access*).
 - **Límites del plan gratuito de Supabase:** alcanzan para grupos de capacitación habituales (decenas de participantes simultáneos).
+
+## Control remoto desde el celular
+
+1. En la computadora, abrí la **Presentación** o el **Desafío en vivo** y tocá el ícono del celular (arriba a la derecha).
+2. Escaneá el QR con tu celular. El ícono se pone verde: el celular quedó vinculado.
+3. Desde el celular: **Siguiente / Atrás**, **Pantallas** (saltar a cualquiera), **Pausa** (muestra el logo en pantalla) y **Desafío** (abre la sala en la computadora). En el desafío, un solo botón grande avanza: *Comenzar → Mostrar resultado → Posiciones → Siguiente → QR de la evaluación*.
+
+- **Seguridad:** el enlace lleva un código secreto de 48 caracteres. El primer celular que se conecta queda vinculado y los demás son rechazados, aunque escaneen el QR. *Desvincular y generar un QR nuevo* corta al celular anterior. Igual conviene no proyectar el QR (abrirlo antes de conectar el proyector o con pantalla extendida).
+- **Continuidad:** la vinculación se mantiene al pasar de la presentación al desafío y al volver (misma pestaña del navegador).
+- **Solo en el celular del capacitador:** la respuesta correcta durante la pregunta y la explicación para comentar con el grupo.
+- **Pantalla completa:** se activa desde la computadora (tecla **F**); los navegadores no permiten activarla a distancia.
+- **Requisitos:** mismo canal en tiempo real que el desafío (Supabase Realtime). Sin Supabase, solo funciona entre pestañas del mismo navegador (demostración).
+
+## Reportes, certificados y tablero
+
+**Activación (una sola vez):** Supabase → *SQL Editor* → *New query* → pegar `supabase/02_reportes.sql` → *Run*. Solo agrega columnas, dos tablas privadas (diagnóstico y nómina) y funciones `rs_*` en `rs_capacitacion`; no toca el inventario ni borra datos. Después, en Administración tocar **Actualizar**.
+Mientras no se ejecute, el sistema funciona en **modo compatible**: tablero, mapa de riesgo, informes, certificados y Excel andan con los datos actuales; satisfacción, diagnóstico, nómina y enlace para el cliente muestran un aviso en lugar de fallar.
+
+- **Informe individual:** datos, resultado, aciertos por tema, firma, historial con RS, vigencia y recomendación. Desde *Resultados* (ícono de persona) o todos los de una jornada.
+- **Certificados:** *certificado de aprobación* (criterio alcanzado) o *constancia de asistencia* (firmó pero no aprobó). Con QR de verificación y fecha de vencimiento. Uno por trabajador (*Resultados*, ícono de medalla) o todos los de una jornada.
+- **Vigencia:** `config.js → reportes.vigenciaMeses` (12 por defecto; 0 = sin vencimiento) y `avisoVencimientoDias` (60). Es un criterio de RS Consultora, **no un plazo legal**.
+- **Informe por empresa:** todas sus jornadas, evolución, resultados por sector y vehículo, mapa de riesgo, satisfacción, cobertura de nómina, vencidos, por vencer y pendientes.
+- **Nómina:** *Empresas → Nómina* → pegar o elegir un CSV con columnas `legajo;apellido;nombre;sector`. Se usa solo para calcular cobertura y pendientes.
+- **Diagnóstico inicial (antes / después):** QR en *Jornadas → Links y QR*. Anónimo, sin nombre ni legajo; las preguntas se eligen en `reportes.diagnostico`. Se compara con la evaluación final de la misma jornada.
+- **Satisfacción:** al finalizar la evaluación, calificación de 1 a 5 y comentario opcional. En los informes se muestran sin nombre.
+- **Compartir con el cliente:** *Jornadas → Compartir con el cliente* crea un enlace secreto al informe grupal y arma el email (se abre en tu correo). **Quien tenga el enlace ve el informe, incluida la planilla con nombres y firmas.** Se puede desactivar en cualquier momento. El envío automático sin abrir el correo requiere un proveedor de email (por ejemplo, SMTP propio o Resend).
+- **Excel:** tablero completo (resumen, jornadas, participantes, temas, empresas, vencimientos, antes y después, percepción de riesgo, comentarios) y por empresa (con pendientes de la nómina), con encabezados, filtros y estados resaltados.
 
 ## Alternativa: planilla de Google Sheets
 

@@ -21,6 +21,32 @@ function randomToken(){
   (window.crypto || window.msCrypto).getRandomValues(a);
   return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
 }
+/** Canal en tiempo real genérico (Supabase Realtime Broadcast; si no hay Supabase, BroadcastChannel del navegador).
+    Los mensajes pasan por el canal y no quedan guardados. onMsg(msg) · onStatus('ok'|'connecting'|'error'). */
+function openBus(name, onMsg, onStatus){
+  const status = s => { try{ onStatus && onStatus(s); }catch(e){} };
+  const client = rsClient();
+  if(client){
+    const ch = client.channel(name, { config:{ broadcast:{ self:false, ack:false } } });
+    let ready = false; const queue = [];
+    ch.on('broadcast', { event:'msg' }, ({ payload }) => { if(payload && payload.t) onMsg(payload); });
+    status('connecting');
+    ch.subscribe(s => {
+      if(s === 'SUBSCRIBED'){ ready = true; status('ok'); queue.splice(0).forEach(m => ch.send({ type:'broadcast', event:'msg', payload:m })); }
+      else if(s === 'CHANNEL_ERROR' || s === 'TIMED_OUT'){ ready = false; status('error'); }
+      else if(s === 'CLOSED'){ ready = false; }
+    });
+    return {
+      mode:'supabase',
+      send(m){ if(ready) ch.send({ type:'broadcast', event:'msg', payload:m }); else if(queue.length < 50) queue.push(m); },
+      close(){ try{ client.removeChannel(ch); }catch(e){} }
+    };
+  }
+  let bc = null;
+  try{ bc = new BroadcastChannel(name); bc.onmessage = e => { if(e.data && e.data.t) onMsg(e.data); }; status('ok'); }
+  catch(e){ status('error'); }
+  return { mode:'local', send(m){ try{ bc && bc.postMessage(m); }catch(e){} }, close(){ try{ bc && bc.close(); }catch(e){} } };
+}
 function jornadaParam(){ return (new URLSearchParams(location.search).get('j') || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8); }
 function verifyUrl(code){ return new URL('verificar.html?c=' + encodeURIComponent(code), location.href).href; }
 

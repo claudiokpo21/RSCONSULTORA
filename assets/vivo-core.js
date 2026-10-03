@@ -25,32 +25,8 @@ function playUrl(code){ return new URL('jugar.html?sala=' + encodeURIComponent(c
 function ordinal(n){ return n + 'º'; }
 function vibrate(ms){ try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} }
 
-/** Abre el canal de la sala. onMsg(msg) recibe cada mensaje; onStatus('ok'|'connecting'|'error'). */
-function openChannel(code, onMsg, onStatus){
-  const name = 'rs-vivo-' + code;
-  const status = s => { try{ onStatus && onStatus(s); }catch(e){} };
-  if(liveMode() === 'supabase'){
-    const client = rsClient();
-    const ch = client.channel(name, { config:{ broadcast:{ self:false, ack:false } } });
-    let ready = false; const queue = [];
-    ch.on('broadcast', { event:'msg' }, ({ payload }) => { if(payload && payload.t) onMsg(payload); });
-    status('connecting');
-    ch.subscribe(s => {
-      if(s === 'SUBSCRIBED'){ ready = true; status('ok'); queue.splice(0).forEach(m => ch.send({ type:'broadcast', event:'msg', payload:m })); }
-      else if(s === 'CHANNEL_ERROR' || s === 'TIMED_OUT'){ ready = false; status('error'); }
-      else if(s === 'CLOSED'){ ready = false; }
-    });
-    return {
-      mode:'supabase',
-      send(m){ if(ready) ch.send({ type:'broadcast', event:'msg', payload:m }); else queue.push(m); },
-      close(){ try{ client.removeChannel(ch); }catch(e){} }
-    };
-  }
-  let bc = null;
-  try{ bc = new BroadcastChannel(name); bc.onmessage = e => { if(e.data && e.data.t) onMsg(e.data); }; status('ok'); }
-  catch(e){ status('error'); }
-  return { mode:'local', send(m){ try{ bc && bc.postMessage(m); }catch(e){} }, close(){ try{ bc && bc.close(); }catch(e){} } };
-}
+/** Abre el canal de la sala (ver openBus en central.js). */
+function openChannel(code, onMsg, onStatus){ return openBus('rs-vivo-' + code, onMsg, onStatus); }
 
 function modeBanner(){
   return liveMode() === 'supabase'

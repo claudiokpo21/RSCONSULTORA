@@ -32,7 +32,7 @@ function teams(){
   });
 }
 function setProgress(){
-  const p = H.phase === 'lobby' ? 0 : H.phase === 'final' ? 100 : Math.round(((H.q + (H.phase === 'question' ? 0 : 1)) / ITEMS.length) * 100);
+  const p = H.phase === 'lobby' ? 0 : (H.phase === 'final' || H.phase === 'summary') ? 100 : Math.round(((H.q + (H.phase === 'question' ? 0 : 1)) / ITEMS.length) * 100);
   $('#progressFill').style.width = p + '%'; $('#progressBar').setAttribute('aria-valuenow', p);
 }
 function show(html, focusPrimary){
@@ -52,6 +52,7 @@ function stateMsg(){
   const base = { t:'state', phase:H.phase, code:H.code, total:ITEMS.length, count:H.players.size };
   if(H.phase === 'question') return { ...base, q:H.q, item:publicItem(H.q), remaining:Math.max(0, H.deadline - Date.now()), duration:DUR * 1000 };
   if(H.phase === 'reveal' || H.phase === 'board') return { ...base, q:H.q, item:publicItem(H.q), correct: ITEMS[H.q].tipo === 'encuesta' ? null : ITEMS[H.q].c, results:H.results };
+  if(H.phase === 'summary') return { ...base, groupPct: groupPct() };
   if(H.phase === 'final'){
     const t = teams(), w = winnerTeam(t);
     return { ...base, results:H.results, teams:t.map(x => ({ id:x.id, n:x.n, avg:x.avg })), winner: w ? w.id : null, evalUrl: evalUrl() };
@@ -203,7 +204,7 @@ function reveal(){
   H.stats[H.q] = { answered, dist, correctPct: poll || !answered ? null : Math.round(correctN / answered * 100) };
   H.phase = 'reveal';
   const max = Math.max(1, ...dist), last = H.q === ITEMS.length - 1;
-  const next = poll ? (last ? 'Ver podio final' : 'Siguiente pregunta') : 'Ver posiciones';
+  const next = poll ? (last ? 'Ver resumen del grupo' : 'Siguiente pregunta') : 'Ver posiciones';
   show(`<div class="q-top">
       <span class="score-pill">Pregunta ${H.q+1} de ${ITEMS.length}</span>
       <span class="tag">${tipoLabel(it.tipo)}</span>
@@ -238,13 +239,68 @@ function showBoard(){
         <p class="sm dim" style="margin-top:10px">Se compara el promedio para que los equipos con más integrantes no tengan ventaja.</p>
       </div>
     </div>
-    <div class="actions" style="justify-content:flex-end"><button class="btn primary lg" id="primaryAction">${last ? 'Ver podio final' : 'Siguiente pregunta'} ${ic('arrow')}</button></div>`, true);
+    <div class="actions" style="justify-content:flex-end"><button class="btn primary lg" id="primaryAction">${last ? 'Ver resumen del grupo' : 'Siguiente pregunta'} ${ic('arrow')}</button></div>`, true);
   $('#primaryAction').onclick = next_;
   broadcastState();
 }
-function next_(){ H.q + 1 < ITEMS.length ? startQuestion(H.q + 1) : finish(); }
+function next_(){ H.q + 1 < ITEMS.length ? startQuestion(H.q + 1) : showSummary(); }
 
-/* ---------- 5. Podio final ---------- */
+/* ---------- 5. Resumen del grupo (anónimo) ---------- */
+function groupPct(){ const sc = H.stats.filter(x => x && x.correctPct !== null); return sc.length ? Math.round(sc.reduce((a,x) => a + x.correctPct, 0) / sc.length) : 0; }
+function summaryData(){
+  return ITEMS.map((it, i) => {
+    const opts = itemOptions(it), st = H.stats[i] || { answered:0, dist:opts.map(() => 0), correctPct:null };
+    const poll = it.tipo === 'encuesta', tot = st.dist.reduce((a,b) => a + b, 0), max = Math.max(...st.dist);
+    const tops = tot ? st.dist.map((v,k) => v === max ? k : -1).filter(k => k >= 0) : [];
+    const top = tops.length ? tops[0] : -1, tie = tops.length > 1;
+    return { i, it, opts, poll, tot, top, tops, tie, dist:st.dist, pct: st.correctPct,
+      rows: opts.map((o,k) => ({ o, n:st.dist[k], p: tot ? Math.round(st.dist[k] / tot * 100) : 0, ok: !poll && k === it.c })) };
+  });
+}
+function showSummary(){
+  clearInterval(H.tick); clearBots();
+  H.phase = 'summary';
+  const D = summaryData(), scored = D.filter(d => !d.poll && d.pct !== null);
+  const best = scored.length ? scored.reduce((a,b) => b.pct > a.pct ? b : a) : null;
+  const worst = scored.length > 1 ? scored.reduce((a,b) => b.pct < a.pct ? b : a) : null;
+  const card = d => {
+    const wrong = !d.poll && d.tot && !d.tops.includes(d.it.c);
+    const tip = d.rows.map(r => `${r.o}: ${r.p}%${r.ok ? ' (correcta)' : ''}`).join(' · ');
+    let chip;
+    if(!d.tot) chip = `<span class="sm-chip">${ic('info')} Sin respuestas</span>`;
+    else if(d.poll) chip = `<span class="sm-chip">${ic('users')} Encuesta anónima</span>`;
+    else if(wrong) chip = `<span class="sm-chip bad">${ic('alert')} Correcta: ${esc(d.opts[d.it.c])} · ${d.pct}%</span>`;
+    else chip = `<span class="sm-chip ok">${ic('check')} ${d.tie ? `Acertó el ${d.pct}%` : 'La mayoría acertó'}</span>`;
+    const top = d.top >= 0 ? d.rows[d.top] : null;
+    return `<article class="sm-card ${wrong ? 'warn' : ''}" style="--d:${d.i}" title="${esc(tip)}">
+      <p class="sm-q"><b>${d.i + 1}</b> ${esc(d.it.q)}</p>
+      <div class="sm-ans">
+        <small>${d.tie ? 'Empate · más elegidas' : 'Más elegida'}</small>
+        <strong>${top ? d.tops.map(k => esc(d.opts[k])).join(' / ') : '—'}</strong>
+        <div class="sm-line"><span class="sm-bar"><i style="--w:${top ? top.p : 0}%"></i></span><b>${top ? top.p : 0}%</b></div>
+      </div>
+      ${chip}</article>`;
+  };
+  show(`<div class="summary">
+    <div class="sm-head">
+      <div><p class="eyebrow">Desafío en vivo · Resumen del grupo</p><h1 class="s-title">¿Qué respondió el grupo?</h1>
+      <p class="sm-sub">${ic('lock')} La respuesta más elegida en cada pregunta. Anónimo: no se muestran nombres.</p></div>
+      <button class="btn primary lg" id="primaryAction">${ic('flag')} VER GANADORES ${ic('arrow')}</button>
+    </div>
+    <div class="sm-kpis">
+      <div class="sm-kpi"><small>Participantes</small><strong>${H.players.size}</strong></div>
+      <div class="sm-kpi"><small>Aciertos del grupo</small><strong>${groupPct()}%</strong></div>
+      <div class="sm-kpi good"><small>${ic('check')} Lo que el grupo tiene claro</small><strong>${best ? best.pct + '%' : '—'}</strong><span>${best ? 'P' + (best.i + 1) + ' · ' + esc(best.it.q) : ''}</span></div>
+      <div class="sm-kpi bad"><small>${ic('alert')} Para reforzar</small><strong>${worst ? worst.pct + '%' : '—'}</strong><span>${worst ? 'P' + (worst.i + 1) + ' · ' + esc(worst.it.q) : ''}</span></div>
+    </div>
+    <div class="sm-grid">${D.map(card).join('')}</div>
+  </div>`, true);
+  stageEl.firstElementChild.classList.add('wide');
+  $('#primaryAction').onclick = finish;
+  broadcastState();
+}
+
+/* ---------- 6. Podio final ---------- */
 function winnerTeam(t){ const withP = t.filter(x => x.n > 0); if(withP.length < 2) return null; const s = [...withP].sort((a,b) => b.avg - a.avg); return s[0].avg === s[1].avg ? null : s[0]; }
 function finish(){
   H.phase = 'final';
@@ -253,8 +309,8 @@ function finish(){
   const scored = H.stats.filter(s => s && s.correctPct !== null), grp = scored.length ? Math.round(scored.reduce((s,x) => s + x.correctPct, 0) / scored.length) : 0;
   const pod = [r[1], r[0], r[2]];
   show(`<div class="final">
-    <p class="eyebrow" style="text-align:center">Desafío en vivo · Resultado final</p>
-    <h1 class="s-title" style="text-align:center">¡Gracias por participar!</h1>
+    <p class="eyebrow" style="text-align:center">Desafío en vivo · Top 3</p>
+    <h1 class="s-title" style="text-align:center">¡Felicitaciones a los ganadores!</h1>
     <div class="podium">${pod.map((p,i) => { const place = [2,1,3][i]; return p ? `<div class="pcol p${place}" style="--d:${[1,2,0][i]}"><div class="pname">${teamIcon(p.team)} ${esc(p.name)}</div><div class="pscore">${p.score} pts</div><div class="pblock"><span>${place}º</span></div></div>` : '<div class="pcol empty"></div>'; }).join('')}</div>
     <div class="grid g3" style="margin-top:22px">
       <div class="card"><p class="eyebrow">Equipo ganador</p><h3 class="h3" style="margin:0">${w ? `${ic(w.icon)} ${w.label}` : 'Empate'}</h3><p class="muted sm">${t.map(x => `${x.label}: ${x.avg} pts promedio`).join(' · ')}</p></div>

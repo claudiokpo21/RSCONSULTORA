@@ -85,6 +85,17 @@ const CONFIG = {
     puntosBase: 500,          // puntos por respuesta correcta
     puntosVelocidad: 500,     // bonus máximo por responder rápido
     maxParticipantes: 150
+  },
+
+  // REPORTES, CERTIFICADOS Y DIAGNÓSTICO
+  reportes: {
+    // Vigencia del certificado en meses (0 = sin vencimiento). La define RS Consultora:
+    // no es un plazo legal. Se usa para el aviso de vencimientos del informe por empresa.
+    vigenciaMeses: 12,
+    avisoVencimientoDias: 60,   // anticipación del aviso 'por vencer'
+    // Diagnóstico inicial anónimo (antes de la charla): números de pregunta de la evaluación
+    // (0 = la primera). Se comparan con la evaluación final para medir el aprendizaje.
+    diagnostico: [1, 2, 4, 8, 9]
   }
 };
 

@@ -24,7 +24,8 @@ function centralPayload(){
   return { id:State.recordId, token:State.token, jornada:State.jornada, legajo:p.legajo, nombre:p.nombre, apellido:p.apellido,
     empresa:p.empresa, sector:p.sector, tipo_vehiculo:p.tipoVehiculo, capacitacion:CONFIG.capacitacion.nombre, capacitador:capacitador(),
     fecha_inicio:t.fechaInicio, fecha_fin:t.fechaFin, duracion_min:t.duracion, preguntas:e.preguntas, correctas:e.correctas,
-    intentos:e.intentos, criterio:CONFIG.aprobacion.porcentajeMinimo, respuestas: State.quiz.done ? State.quiz.answers : null, firma:State.firma };
+    intentos:e.intentos, criterio:CONFIG.aprobacion.porcentajeMinimo, respuestas: State.quiz.done ? State.quiz.answers : null, firma:State.firma,
+    satisfaccion: State.satisfaccion || null, comentario: State.comentario || null };
 }
 /** Envía el registro al servidor central (Supabase) y, si está configurada, a la planilla de Google. */
 async function sendAll(){
@@ -326,12 +327,42 @@ function viewFin(){
       <tr><th>Estado</th><td><span class="status-badge ${ok ? 'ok' : 'bad'}">${e.estado}</span></td></tr>
     </table>
     <div class="callout green">${ic('shield')} <span>Si estás fatigado, no continúes conduciendo. Detenerse a tiempo también es seguridad.</span></div>
+    ${Central.enabled() ? opinionHTML() : ''}
     <div class="signature">${instructorCard(CONFIG.consultora.nombre + ' · Capacitación dictada por')}</div>
     <div class="actions">${ok ? `<button class="btn green" id="fPrint">${ic('print')} CONSTANCIA</button>` : ''}<button class="btn ghost" id="fNew">${ic('user')} Registrar otro participante</button></div>
     <p class="sm dim" style="margin-top:10px">Ya podés cerrar esta página. Usá “Registrar otro participante” solo si este equipo es compartido.</p>
   </div>`);
   if($('#fPrint')) $('#fPrint').onclick = printCertificate;
+  bindOpinion();
   $('#fNew').onclick = () => { State = newState(); syncState = ''; viewForm({}, {}); };
+}
+
+/* ---------- Opinión sobre la capacitación (satisfacción 1 a 5) ---------- */
+const OPINION = ['Muy mala','Mala','Regular','Buena','Muy buena'];
+function opinionHTML(){
+  if(State.opinionEnviada) return `<div class="opinion done">${ic('check')} <span>¡Gracias por tu opinión! Nos ayuda a mejorar la capacitación.</span></div>`;
+  const v = State.satisfaccion || 0;
+  return `<form class="opinion" id="opForm" novalidate>
+    <p class="eyebrow">Tu opinión (opcional)</p>
+    <h2 class="op-q">¿Cómo calificás la capacitación?</h2>
+    <div class="stars" role="radiogroup" aria-label="Calificación de 1 a 5">${[1,2,3,4,5].map(n => `<button type="button" role="radio" aria-checked="${v === n}" aria-label="${n} de 5: ${OPINION[n - 1]}" data-star="${n}" class="${n <= v ? 'on' : ''}">★</button>`).join('')}</div>
+    <p class="op-lbl" id="opLbl">${v ? OPINION[v - 1] : 'Tocá una estrella'}</p>
+    <label class="sr-only" for="opCom">Comentario</label>
+    <textarea id="opCom" maxlength="300" placeholder="¿Algo para destacar o mejorar? (opcional)">${esc(State.comentario || '')}</textarea>
+    <p class="sm dim">En los informes, las opiniones se muestran sin tu nombre.</p>
+    <div class="actions" style="margin-top:8px"><button class="btn primary" type="submit" id="opSend" ${v ? '' : 'disabled'}>${ic('message')} ENVIAR OPINIÓN</button></div>
+  </form>`;
+}
+function bindOpinion(){
+  const f = $('#opForm'); if(!f) return;
+  const paint = v => { $$('[data-star]', f).forEach(b => { const n = +b.dataset.star; b.classList.toggle('on', n <= v); b.setAttribute('aria-checked', String(n === v)); }); $('#opLbl').textContent = v ? OPINION[v - 1] : 'Tocá una estrella'; $('#opSend').disabled = !v; };
+  $$('[data-star]', f).forEach(b => b.onclick = () => { State.satisfaccion = +b.dataset.star; paint(State.satisfaccion); });
+  f.onsubmit = async e => {
+    e.preventDefault(); if(!State.satisfaccion) return;
+    State.comentario = $('#opCom').value.trim().slice(0, 300); State.opinionEnviada = true; persist();
+    f.outerHTML = opinionHTML();
+    await sendAll();
+  };
 }
 
 /* ---------- Inicio ---------- */

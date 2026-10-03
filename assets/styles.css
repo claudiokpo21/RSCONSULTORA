@@ -594,3 +594,23 @@ a.btn.green{color:#0c1510}
 .cert .sigbox img{max-height:15mm}
 .cert .verify{margin-top:5mm}
 .cert .foot{margin-top:5mm}
+
+/* ---- Opinión del participante (satisfacción 1 a 5) ---- */
+.opinion{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel2);text-align:center}
+.opinion .op-q{font-size:1.15rem;margin:4px 0 8px}
+.opinion .stars{display:flex;justify-content:center;gap:6px}
+.opinion .stars button{width:48px;height:48px;border:0;background:none;font-size:2.1rem;line-height:1;color:var(--line);cursor:pointer;border-radius:10px;transition:transform .1s,color .15s}
+.opinion .stars button.on{color:var(--amber)}
+.opinion .stars button:active{transform:scale(.92)}
+.opinion .op-lbl{color:var(--muted);font-size:.9rem;min-height:1.4em;margin:4px 0 10px}
+.opinion textarea{width:100%;min-height:76px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font:inherit;font-size:.95rem;resize:vertical}
+.opinion .actions{justify-content:center}
+.opinion.done{display:flex;align-items:center;justify-content:center;gap:10px;color:#5fd699;font-weight:600}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+/* ---- Diagnóstico inicial (anónimo) ---- */
+.diag-points{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.diag-points li{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.diag-points .ic{color:var(--amber);margin-top:2px}
+.opt.picked{border-color:var(--amber);background:linear-gradient(0deg,var(--amber-soft),var(--amber-soft)),var(--panel)}
+.qprog i.done{background:var(--steel)}

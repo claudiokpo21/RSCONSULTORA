@@ -6,32 +6,6 @@
    RS Consultora · Fatiga y Conducción Segura */
 
 const root = $('#report');
-const INK = '#1b1f24', MUTED = '#5b6470', GRID = '#dfe3e8', BAR = '#2f5fb3';   // una sola serie → un solo color
-
-/* ---------- Gráficos (SVG, una serie, etiqueta directa en la punta) ---------- */
-function barPath(x, y, w, h, r){   // barra horizontal: base recta, punta redondeada 4px
-  if(w <= 0) return '';
-  r = Math.min(r, w, h / 2);
-  return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
-}
-/** rows: [{label, value, text, hint}] · max: valor máximo del eje · ref: línea de referencia opcional {value,label} */
-function hbarChart(rows, { max, width = 640, labelW = 230, rightW = 110, unit = '', ref = null, title = '', bh = 16, gap = 9 }){
-  const top = ref ? 22 : 6, plotW = width - labelW - rightW;
-  const H = top + rows.length * (bh + gap) + 18, x0 = labelW;
-  const sx = v => (Math.max(0, v) / (max || 1)) * plotW;
-  const ticks = [0, .25, .5, .75, 1].map(t => Math.round(t * max));
-  return `<svg class="chart" viewBox="0 0 ${width} ${H}" role="img" aria-label="${esc(title)}">
-    ${ticks.map(t => `<line x1="${x0 + sx(t)}" x2="${x0 + sx(t)}" y1="${top - 4}" y2="${H - 16}" stroke="${GRID}" stroke-width="1"/><text x="${x0 + sx(t)}" y="${H - 3}" font-size="10" fill="${MUTED}" text-anchor="middle">${t}${unit}</text>`).join('')}
-    ${ref ? `<line x1="${x0 + sx(ref.value)}" x2="${x0 + sx(ref.value)}" y1="${top - 12}" y2="${H - 16}" stroke="${INK}" stroke-width="1"/><text x="${x0 + sx(ref.value) + 4}" y="${top - 6}" font-size="10" fill="${INK}">${esc(ref.label)}</text>` : ''}
-    ${rows.map((r, i) => { const y = top + i * (bh + gap); return `<g>
-      <title>${esc(r.hint || (r.label + ': ' + r.text))}</title>
-      <text x="${x0 - 10}" y="${y + bh / 2 + 4}" font-size="11.5" fill="${INK}" text-anchor="end">${esc(r.label)}</text>
-      <path d="${barPath(x0, y, sx(r.value), bh, 4)}" fill="${BAR}"/>
-      <text x="${x0 + sx(r.value) + 6}" y="${y + bh / 2 + 4}" font-size="11.5" font-weight="700" fill="${INK}">${esc(r.text)}</text></g>`; }).join('')}
-    <line x1="${x0}" x2="${x0}" y1="${top - 4}" y2="${H - 16}" stroke="${MUTED}" stroke-width="1"/>
-  </svg>`;
-}
-
 /* ---------- Cálculos ---------- */
 function analizar(data){
   const regs = data.registros || [], Q = CONTENT.quiz;
@@ -51,7 +25,9 @@ function analizar(data){
   const reforzar = porPregunta.filter(x => x.pct != null && x.pct < 80).sort((a, b) => a.pct - b.pct).slice(0, 3);
   const tipos = TIPOS.map(t => ({ t, n: regs.filter(r => r.tipo_vehiculo === t).length }));
   const des = (data.desafios || []).slice(-1)[0];
-  return {
+  const regsF = regs.map(r => ({ ...r, firmado:!!r.firma }));
+  return { sat: An.satisfaccion(regs), ad: An.antesDespues(data.diagnosticos || [], regs),
+    mapaSector: An.mapa(regsF, 'sector'), mapaTipo: An.mapa(regsF, 'tipo_vehiculo'),
     regs, evaluados, aprob, firm, buckets, porPregunta, reforzar, conResp, tipos, desafio: des ? des.datos : null,
     pctAprob: evaluados.length ? Math.round(aprob.length / evaluados.length * 100) : null,
     promedio: avg(evaluados.map(r => r.porcentaje)),
@@ -67,18 +43,16 @@ function conclusion(A){
         : `El ${p} % de los evaluados aprobó (criterio ${min} %). Se recomienda una instancia de refuerzo para quienes no alcanzaron el criterio.`;
   if(A.reforzar.length) t += ` Los temas con menor porcentaje de acierto fueron: ${A.reforzar.map(x => `${tema(x.k).toLowerCase()} (${x.pct} %)`).join(', ')}. Se sugiere reforzarlos en charlas de 5 minutos o en la próxima capacitación.`;
   else t += ' No se detectaron temas con bajo porcentaje de acierto.';
+  if(A.ad.pre != null && A.ad.post != null) t += ` En las preguntas del diagnóstico inicial, los aciertos del grupo pasaron de ${A.ad.pre} % (antes de la capacitación) a ${A.ad.post} % (evaluación final).`;
+  if(A.sat.n) t += ` Los participantes calificaron la capacitación con ${A.sat.prom.toFixed(1).replace('.', ',')} sobre 5 (${A.sat.n} respuestas).`;
+  const peor = A.mapaSector.filter(r => r.n >= 3 && r.prom < min)[0];
+  if(peor) t += ` El sector con menor desempeño fue ${peor.grupo} (${peor.prom} % promedio): se recomienda priorizarlo en el refuerzo.`;
   const noFirm = A.regs.length - A.firm.length;
   if(noFirm > 0) t += ` ${noFirm} participante${noFirm > 1 ? 's' : ''} no registr${noFirm > 1 ? 'aron' : 'ó'} su firma de asistencia.`;
   return t;
 }
 
 /* ---------- Render ---------- */
-function sheetHead(j){
-  return `<header class="r-head">
-    <div class="r-brand"><span class="r-mark">${esc(CONFIG.consultora.iniciales)}</span><div><b>${esc(CONFIG.consultora.nombre)}</b><small>Higiene y Seguridad · Capacitación</small></div></div>
-    <div class="r-meta">Informe ${esc(j.codigo)}<br>Emitido el ${fmtDate(new Date())}</div>
-  </header>`;
-}
 function render(data){
   const j = data.jornada, A = analizar(data), min = CONFIG.aprobacion.porcentajeMinimo, D = A.desafio;
   document.title = `Informe ${j.codigo} · ${j.empresa} · RS Consultora`;
@@ -130,6 +104,23 @@ function render(data){
 
   <section class="sheet">
     ${sheetHead(j)}
+    <h2 class="r-h2">Mapa de riesgo por sector</h2>
+    <p class="r-note">Porcentaje de acierto de cada sector en cada tema de la evaluación. Rojo: debajo del criterio de aprobación (${min} %); azul: igual o por encima.</p>
+    ${mapaTabla(A.mapaSector, 'Sector')}
+    <h2 class="r-h2">Mapa de riesgo por tipo de vehículo</h2>
+    ${mapaTabla(A.mapaTipo, 'Tipo de vehículo')}
+  </section>
+
+  ${A.ad.n || A.sat.n ? `<section class="sheet">
+    ${sheetHead(j)}
+    <h2 class="r-h2">Antes y después de la capacitación</h2>
+    ${A.ad.n ? `<p class="r-note">Diagnóstico anónimo al inicio (${A.ad.n} respuesta${A.ad.n === 1 ? '' : 's'}) comparado con la evaluación final, en las mismas preguntas. Aciertos del grupo: <b>${A.ad.pre ?? '–'} %</b> antes → <b>${A.ad.post ?? '–'} %</b> después.</p>${antesDespuesChart(A.ad)}` : '<p class="r-empty">No se realizó el diagnóstico inicial en esta jornada.</p>'}
+    <h2 class="r-h2">Satisfacción de los participantes</h2>
+    ${satisfaccionHTML(A.sat)}
+  </section>` : ''}
+
+  <section class="sheet">
+    ${sheetHead(j)}
     <h2 class="r-h2">Desafío en vivo</h2>
     ${D ? `<p>Participaron <b>${D.participantes}</b> personas. Promedio de aciertos del grupo: <b>${D.aciertosGrupo} %</b>${D.ganador ? ` · Equipo ganador: <b>${esc(D.ganador)}</b>` : ''}.</p>
       ${encuestas.map(p => { const tot = p.dist.reduce((s, x) => s + x, 0) || 1; return `<h3 class="r-h3">${esc(p.q)}</h3>
@@ -160,9 +151,6 @@ function render(data){
   </section>`;
   $('#tbCsv').onclick = () => csv(data);
 }
-// Tema de cada pregunta de la evaluación (mismo orden que CONTENT.quiz)
-const TEMAS = ['Definición de fatiga','Señales de alerta','Microsueño','Factores de riesgo','Sueño y conducción','Vehículos livianos','Vehículos pesados','Prevención antes del viaje','Mito: café y descanso','Qué hacer ante la fatiga'];
-function tema(k){ return TEMAS[k] || `Pregunta ${k + 1}`; }
 function csv(data){
   const j = data.jornada, cell = v => { let s = String(v ?? ''); if(/^[=+\-@]/.test(s)) s = "'" + s; return /[";\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
   const head = ['N.º','Legajo','Apellido','Nombre','Sector','Tipo de vehículo','Porcentaje','Estado','Intentos','Asistencia firmada','Código de verificación'];
@@ -172,12 +160,23 @@ function csv(data){
   a.href = url; a.download = `informe_${j.codigo}_${isoLocal(new Date())}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 function message(title, body){
-  root.innerHTML = `<section class="sheet r-msg"><h1 class="r-title">${esc(title)}</h1><p>${body}</p><p><a href="admin.html">Ir a Administración</a></p></section>`;
+  root.innerHTML = `<section class="sheet r-msg"><h1 class="r-title">${esc(title)}</h1><p>${body}</p>${new URLSearchParams(location.search).get('t') ? '' : '<p><a href="admin.html">Ir a Administración</a></p>'}</section>`;
 }
 
 (async function init(){
   $('#tbPrint').onclick = () => window.print();
-  const id = new URLSearchParams(location.search).get('id');
+  const qs = new URLSearchParams(location.search), tok = qs.get('t');
+  if(tok){
+    const back = $('.toolbar a[href="admin.html"]'); if(back) back.remove();
+    if(!/^[0-9a-f]{48}$/.test(tok) || !Central.enabled()) return message('Enlace no válido', 'Pedile a la consultora un enlace actualizado.');
+    try{
+      const data = await Central.rpc('rs_informe_publico', { p_token:tok });
+      if(!data || !data.jornada) return message('Enlace no disponible', 'El enlace fue desactivado o no existe. Pedile a la consultora uno nuevo.');
+      render(data);
+    }catch(e){ message('No se pudo cargar el informe', esc(Central.isNetworkError(e) ? 'Sin conexión a internet.' : 'El enlace no está disponible.')); }
+    return;
+  }
+  const id = qs.get('id');
   if(!id || !/^[0-9a-f-]{36}$/i.test(id)) return message('Informe no encontrado', 'Abrí el informe desde la pestaña Jornadas de Administración.');
   if(!Central.enabled()) return message('Registro central no configurado', 'El informe necesita el registro central (Supabase).');
   try{

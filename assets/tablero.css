@@ -1,0 +1,122 @@
+/* tablero.css — Tablero general y Empresas (Administración) · RS Consultora */
+.tb-banner{margin-bottom:12px}
+.tb-filters{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.tb-filters .filters{flex:1;margin:0;max-width:720px;grid-template-columns:repeat(3,minmax(170px,1fr))}
+.tb-kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tb-kpis .kpi{padding:14px}
+.tb-kpis .kpi span{font-size:.7rem}
+.tb-kpis .kpi b{font-size:clamp(1.25rem,2vw,1.75rem);white-space:nowrap}
+@media (max-width:1100px){ .tb-kpis{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:600px){ .tb-kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.kpi small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+.kpi b{font-variant-numeric:tabular-nums}
+.tb-grid{display:grid;gap:12px;margin-bottom:12px}
+.tb-grid.two{grid-template-columns:1.2fr 1fr}
+.tb-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tb-grid>.panel,.tb-sec{margin:0;min-width:0}
+.tb-sec{margin-bottom:12px}
+.tb-h{font-size:1.02rem;margin:0}
+.tb-desc{color:var(--muted);font-size:.84rem;margin:4px 0 12px}
+.tb-sub{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin:14px 0 6px}
+.tb-note{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:var(--muted);font-size:.78rem;margin-top:8px}
+.tb-note .ic{width:1em;height:1em;color:#ec835a}
+.tb-sec-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.tb-sec-head .seg button{border:0;background:transparent;padding:8px 12px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted);min-height:38px}
+.tb-sec-head .seg button.on{background:var(--panel2);color:var(--text)}
+
+/* Gráfico de columnas */
+.tb-svg{width:100%;height:auto;display:block;font-family:var(--font)}
+.tb-svg .grid{stroke:#2a333e;stroke-width:1}
+.tb-svg .tick{fill:var(--dim);font-size:11px}
+.tb-svg .val{fill:var(--text);font-size:11.5px;font-weight:700}
+
+/* Barras horizontales (una serie) */
+.tb-bars{display:flex;flex-direction:column;gap:7px}
+.tb-row{display:grid;grid-template-columns:minmax(0,14.5em) 1fr 3em;gap:10px;align-items:center;font-size:.85rem}
+.tb-row .lb{display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.tb-row .lb .ic{width:1em;height:1em;flex:none;color:#ec835a}
+.tb-row .vl{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.tb-row .trk{position:relative;height:10px;background:var(--bg2);border-radius:0 4px 4px 0}
+.tb-row .trk i{display:block;height:100%;background:var(--amber);border-radius:0 4px 4px 0}
+.tb-row.low .trk i{background:#ec835a}
+.tb-row.top .lb{font-weight:700}
+.tb-row:not(.top) .trk i{opacity:1}
+.tb-perc .tb-row:not(.top) .trk i{background:#5b6672}
+.tb-row .ref{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--text);opacity:.75;border-radius:1px}
+.ref-key{display:inline-block;width:2px;height:12px;background:var(--text);opacity:.75}
+.tb-perc+.tb-perc{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.tb-perc .q{font-size:.88rem;font-weight:600;margin-bottom:8px}
+
+/* Mapa de riesgo */
+.tb-heat-wrap{overflow-x:auto}
+.tb-heat{border-collapse:separate;border-spacing:2px;width:100%;min-width:760px;font-size:.82rem;font-variant-numeric:tabular-nums}
+.tb-heat th{font-weight:600;color:var(--muted);font-size:.74rem;padding:6px 4px;text-align:center;white-space:nowrap}
+.tb-heat tbody th{text-align:left;color:var(--text);font-size:.84rem;padding-right:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.tb-heat td{text-align:center;padding:9px 4px;border-radius:4px;font-weight:700;min-width:52px}
+.tb-heat td.n{color:var(--muted);font-weight:500;background:transparent}
+.tb-heat td.pr{background:var(--panel2);color:var(--text)}
+.tb-heat tr.few td:not(.n):not(.pr){background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.16) 0 3px,transparent 3px 7px)}
+.tb-heat tr.few th{color:var(--muted);font-style:italic}
+.tb-heat tr.few td.n::after{content:'*';color:var(--amber)}
+.tb-legend{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;font-size:.78rem;color:var(--muted);margin-top:10px}
+.tb-legend span{display:inline-flex;align-items:center;gap:6px}
+.tb-legend i{width:14px;height:14px;border-radius:3px;display:inline-block}
+
+/* Empresas (tabla) */
+.tb-emp{min-width:820px}
+.tb-mini{display:inline-block;vertical-align:middle;width:70px;height:8px;background:var(--bg2);border-radius:0 4px 4px 0;margin-right:6px}
+.tb-mini i{display:block;height:100%;background:var(--amber);border-radius:0 4px 4px 0}
+
+/* Antes / después */
+.tb-pp-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.tb-pp-head small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+.tb-pp-head b{font-size:1.7rem;font-variant-numeric:tabular-nums}
+.tb-pp-head p{flex-basis:100%}
+.tb-pp{display:flex;flex-direction:column;gap:9px}
+.tb-pp-row{display:grid;grid-template-columns:1fr 2.6em 1fr 2.6em;gap:4px 8px;align-items:center;font-size:.82rem}
+.tb-pp-row .lb{grid-column:1/-1;color:var(--text)}
+.tb-pp-row .vl{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.trk2{height:9px;background:var(--bg2);border-radius:0 4px 4px 0}
+.trk2 i{display:block;height:100%;border-radius:0 4px 4px 0}
+
+/* Satisfacción */
+.tb-sat{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.tb-sat .big b{display:block;font-size:2.4rem;line-height:1}
+.tb-sat .big span{display:block;color:var(--muted);font-size:.8rem}
+.tb-sat .big .pos{color:#5fd699;font-weight:700;margin-top:4px}
+.tb-sat .tb-row{grid-template-columns:4.6em 1fr 2em}
+.tb-sat .tb-row .lb{color:var(--amber);letter-spacing:-1px}
+.tb-com{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.tb-com li{font-size:.84rem;font-style:italic;color:var(--text);padding:8px 10px;border-radius:8px;background:var(--panel2)}
+
+/* Empresas (tarjetas) */
+.emp-list{display:grid;gap:12px}
+.emp-card{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px}
+.emp-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+.emp-head h3{font-size:1.1rem}
+.emp-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
+.emp-stats div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg2)}
+.emp-stats small{display:block;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.07em}
+.emp-stats b{font-size:1.3rem;font-variant-numeric:tabular-nums}
+.emp-stats .ok b{color:#5fd699}.emp-stats .warn b{color:var(--amber)}.emp-stats .bad b{color:#ff8a8d}
+.emp-cov{margin-top:12px}
+.emp-cov .bar{height:10px;border-radius:0 4px 4px 0;background:var(--bg2);overflow:hidden}
+.emp-cov .bar i{display:block;height:100%;background:var(--amber);border-radius:0 4px 4px 0}
+.emp-cov p{display:flex;justify-content:space-between;font-size:.84rem;color:var(--muted);margin-bottom:6px}
+.emp-cov p b{color:var(--text)}
+.nom-area{width:100%;min-height:150px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font:inherit;font-family:ui-monospace,Consolas,monospace;font-size:.82rem}
+dialog.wide{max-width:640px}
+
+@media (max-width:1100px){ .tb-grid.three{grid-template-columns:1fr} }
+@media (max-width:860px){ .tb-grid.two{grid-template-columns:1fr} .tb-sat{grid-template-columns:1fr} }
+.row-acts{display:flex;gap:6px;justify-content:flex-end}
+a.icon-btn{color:var(--text);text-decoration:none}
+
+@media (max-width:700px){ .tb-filters .filters{grid-template-columns:1fr} }
+
+/* En paneles angostos, la etiqueta va arriba de la barra para no cortarse */
+.tb-perc .tb-row,.tb-grid.three .tb-perc .tb-row{grid-template-columns:1fr 3em;grid-template-areas:"lb lb" "trk vl";gap:3px 10px}
+.tb-perc .tb-row .lb{grid-area:lb;white-space:normal}
+.tb-perc .tb-row .trk{grid-area:trk}
+.tb-perc .tb-row .vl{grid-area:vl}
+.emp-cov p.emp-pend{display:flex;justify-content:flex-start;gap:6px;align-items:center;margin:8px 0 0;color:var(--amber)}

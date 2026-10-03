@@ -68,3 +68,21 @@ body{background:var(--desk);color:var(--ink);font-family:"Segoe UI",system-ui,-a
   .sheet{box-shadow:none;margin:0;width:210mm;min-height:297mm;page-break-after:always;break-after:page}
   .sheet:last-child{page-break-after:auto;break-after:auto}
 }
+
+/* ---- Mapa de riesgo, leyendas, satisfacción ---- */
+.r-heat{width:100%;border-collapse:separate;border-spacing:1.2px;font-size:8.6pt;font-variant-numeric:tabular-nums}
+.r-heat th{font-weight:600;color:var(--muted);font-size:7.6pt;padding:1.4mm .6mm;text-align:center}
+.r-heat tbody th{text-align:left;color:var(--ink);font-size:8.6pt;padding-right:2mm;max-width:40mm}
+.r-heat td{text-align:center;padding:1.8mm .4mm;border-radius:1mm;font-weight:700}
+.r-heat td.n{color:var(--muted);font-weight:500}
+.r-heat td.pr{background:#f4f6f8}
+.r-heat tr.few td:not(.n):not(.pr){background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.13) 0 2px,transparent 2px 5px)}
+.r-heat tr.few td.n::after{content:'*'}
+.r-legend{display:flex;flex-wrap:wrap;gap:1.5mm 4mm;align-items:center;font-size:8pt;color:var(--muted);margin:2.5mm 0 1mm}
+.r-legend span{display:inline-flex;align-items:center;gap:1.5mm}
+.r-legend i{width:3.2mm;height:3.2mm;border-radius:.6mm;display:inline-block}
+.r-big{font-size:28pt;font-weight:800;line-height:1;margin:2mm 0}
+.r-big small{font-size:11pt;color:var(--muted);font-weight:600}
+.r-quotes{list-style:none;margin:0;padding:0;display:grid;gap:2mm}
+.r-quotes li{font-style:italic;font-size:9.5pt;padding:2mm 3mm;border-left:2px solid var(--amber);background:#fafbfc}
+.r-heat td.pr{white-space:nowrap}

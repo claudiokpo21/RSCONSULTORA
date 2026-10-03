@@ -89,7 +89,17 @@ function render(s, force){
   if(s.phase === 'lobby') renderWaiting(s);
   else if(s.phase === 'question') renderQuestion(s);
   else if(s.phase === 'reveal' || s.phase === 'board') renderResult(s);
+  else if(s.phase === 'summary') renderSummary(s);
   else if(s.phase === 'final') renderFinal(s);
+}
+function renderSummary(s){
+  progress(100);
+  show(`<div class="gate-card welcome">
+    ${ic('activity','xl')}
+    <h1 style="font-size:1.5rem">¡Terminaron las preguntas!</h1>
+    <div class="pulse-msg">${ic('eye')} Mirá la pantalla: el resumen del grupo y después, los ganadores</div>
+    <p class="muted sm" style="margin-top:14px">El resumen es anónimo: muestra qué respondió el grupo, sin nombres.</p>
+  </div>`);
 }
 
 /* ---------- 4. Pantallas ---------- */

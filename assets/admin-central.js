@@ -5,7 +5,7 @@
    · Resultados: todos los registros, con filtros, indicadores, exportación CSV y eliminación.
    RS Consultora · Fatiga y Conducción Segura */
 
-const AC = { user:null, tab:'jornadas', jornadas:[], registros:[], open:null, busy:false,
+const AC = { user:null, tab:'tablero', jornadas:[], registros:[], T:null, open:null, qr:{}, busy:false,
   f:{ jornada:'', q:'', estado:'', tipo:'', desde:'', hasta:'' } };
 const acEl = $('#admin');
 
@@ -119,6 +119,9 @@ async function acReload(){
   try{
     const [j, r] = await Promise.all([Central.rpc('rs_admin_jornadas'), Central.rpc('rs_admin_registros', { p_jornada:null })]);
     AC.jornadas = j || []; AC.registros = r || [];
+    try{ AC.T = await Datos.tablero(AC.jornadas); }catch(e){ AC.T = null; console.warn('Tablero:', e); }
+    // Sistema recién instalado: sin jornadas ni registros, se abre directo en Jornadas para crear la primera.
+    if(!AC.inicio){ AC.inicio = true; if(!AC.jornadas.length && !AC.registros.length) AC.tab = 'jornadas'; }
     acRender();
   }catch(e){ acError(e); }
 }
@@ -135,15 +138,17 @@ function acRender(){
       </div>
     </div>
     <div class="admin-tabs" role="tablist">
+      <button role="tab" aria-selected="${AC.tab === 'tablero'}" data-tab="tablero">${ic('activity')} Tablero</button>
       <button role="tab" aria-selected="${AC.tab === 'jornadas'}" data-tab="jornadas">${ic('calendar')} Jornadas <span class="count">${AC.jornadas.length}</span></button>
+      <button role="tab" aria-selected="${AC.tab === 'empresas'}" data-tab="empresas">${ic('building')} Empresas</button>
       <button role="tab" aria-selected="${AC.tab === 'resultados'}" data-tab="resultados">${ic('clipboard')} Resultados <span class="count">${AC.registros.length}</span></button>
     </div>
-    <div id="acBody">${AC.tab === 'jornadas' ? jornadasHTML() : resultadosHTML()}</div>`);
+    <div id="acBody">${{ tablero:tableroHTML, jornadas:jornadasHTML, empresas:empresasHTML, resultados:resultadosHTML }[AC.tab]()}</div>`);
   $$('[data-tab]', acEl).forEach(b => b.onclick = () => { AC.tab = b.dataset.tab; acRender(); });
-  $('#acRefresh').onclick = acReload;
+  $('#acRefresh').onclick = () => { try{ localStorage.removeItem(Datos.KEY); }catch(e){} acReload(); };
   $('#acPw').onclick = () => acNewPassword('change');
   $('#acLogout').onclick = async () => { await Central.signOut(); AC.user = null; acLogin(); };
-  AC.tab === 'jornadas' ? bindJornadas() : bindResultados();
+  ({ tablero:bindTablero, jornadas:bindJornadas, empresas:bindEmpresas, resultados:bindResultados })[AC.tab]();
 }
 
 /* ---------- Jornadas ---------- */
@@ -155,6 +160,7 @@ function jornadasHTML(){
         <div class="field"><label for="jLug">LUGAR / SECTOR</label><input id="jLug" maxlength="120" placeholder="Ej.: Yacimiento Norte"></div>
         <div class="field"><label for="jFec">FECHA</label><input id="jFec" type="date" value="${todayISO()}"></div>
         <div class="field"><label for="jCap">CAPACITADOR</label><input id="jCap" maxlength="80" value="${esc(capacitador())}"></div>
+        <div class="field"><label for="jMail">EMAIL DE CONTACTO (EMPRESA)</label><input id="jMail" type="email" maxlength="120" placeholder="Opcional: para enviarle el informe"></div>
         <button class="btn primary" type="submit">${ic('calendar')} CREAR JORNADA</button>
       </form>
       <p class="sm dim" style="margin-top:8px">Cada jornada tiene su código. Usá sus links (presentación, desafío y evaluación) para que los resultados queden agrupados en el informe de esa empresa.</p>
@@ -164,7 +170,7 @@ function jornadasHTML(){
 }
 function jornadaCard(j){
   const open = AC.open === j.id, abierta = j.estado === 'abierta';
-  const links = [['Presentación','capacitacion.html','play'],['Desafío en vivo','vivo.html','zap'],['Evaluación','evaluacion.html','clipboard']];
+  const links = [['Diagnóstico inicial','diagnostico.html','target'],['Presentación','capacitacion.html','play'],['Desafío en vivo','vivo.html','zap'],['Evaluación','evaluacion.html','clipboard']];
   return `<article class="jcard ${abierta ? '' : 'closed'}">
     <div class="jhead">
       <div><h3>${esc(j.empresa)}</h3><p class="muted sm">${fmtDate(j.fecha + 'T12:00:00')}${j.lugar ? ' · ' + esc(j.lugar) : ''} · ${esc(j.capacitador)}</p></div>
@@ -173,15 +179,20 @@ function jornadaCard(j){
     <div class="jstats">
       <span><b>${j.participantes}</b> participantes</span><span><b>${j.aprobados}</b> aprobados</span>
       <span><b>${j.firmas}</b> firmas</span><span><b>${j.desafios}</b> desafío${j.desafios == 1 ? '' : 's'} en vivo</span>
+      ${j.diagnosticos != null ? `<span><b>${j.diagnosticos}</b> diagnóstico${j.diagnosticos == 1 ? '' : 's'}</span>` : ''}
     </div>
     <div class="actions" style="margin-top:12px">
       <button class="btn sm ${open ? 'primary' : 'ghost'}" data-links="${j.id}">${ic('route')} Links y QR</button>
-      <a class="btn sm green" href="informe.html?id=${encodeURIComponent(j.id)}" target="_blank" rel="noopener">${ic('clipboard')} Informe</a>
+      <a class="btn sm green" href="informe.html?id=${encodeURIComponent(j.id)}" target="_blank" rel="noopener">${ic('clipboard')} Informe grupal</a>
+      <a class="btn sm ghost" href="documento.html?doc=ind&j=${encodeURIComponent(j.id)}" target="_blank" rel="noopener">${ic('user')} Informes individuales</a>
+      <a class="btn sm ghost" href="documento.html?doc=cert&j=${encodeURIComponent(j.id)}" target="_blank" rel="noopener">${ic('award')} Certificados</a>
+      <button class="btn sm ghost" data-share="${j.id}">${ic('message')} Compartir con el cliente</button>
       <button class="btn sm ghost" data-estado="${j.id}" data-nuevo="${abierta ? 'cerrada' : 'abierta'}">${ic(abierta ? 'lock' : 'refresh')} ${abierta ? 'Cerrar jornada' : 'Reabrir'}</button>
     </div>
     ${open ? `<div class="jlinks">
       <div class="jlink-rows">${links.map(([t, pg, icn]) => { const u = linkFor(pg, j.codigo); return `<div class="jlink"><span>${ic(icn)} ${t}</span><code>${esc(u.replace(/^https?:\/\//, ''))}</code><button class="btn sm ghost" data-copy="${esc(u)}">${ic('clipboard')} Copiar</button><a class="btn sm ghost" href="${esc(u)}" target="_blank" rel="noopener">${ic('arrow')} Abrir</a></div>`; }).join('')}</div>
-      <div class="jqr"><div class="qr-box">${qrSVG(linkFor('evaluacion.html', j.codigo))}</div><p class="sm muted">QR de la evaluación</p></div>
+      <div class="jqr">${(() => { const dg = AC.qr[j.id] === 'diag'; return `<div class="seg" role="group" aria-label="QR a mostrar" style="margin-bottom:8px"><button class="seg-btn" aria-pressed="${!dg}" data-qr="${j.id}" data-k="eval">Evaluación</button><button class="seg-btn" aria-pressed="${dg}" data-qr="${j.id}" data-k="diag">Diagnóstico</button></div>
+        <div class="qr-box">${qrSVG(linkFor(dg ? 'diagnostico.html' : 'evaluacion.html', j.codigo))}</div><p class="sm muted">${dg ? 'QR del diagnóstico inicial (mostrarlo al comenzar, antes de la presentación)' : 'QR de la evaluación'}</p>`; })()}</div>
       ${abierta ? '' : `<div style="grid-column:1/-1">${fb('warn','Jornada cerrada','Los participantes ya no pueden sumarse a esta jornada. Reabrila si necesitás registrar más resultados.')}</div>`}
     </div>` : ''}
   </article>`;
@@ -193,12 +204,14 @@ function bindJornadas(){
     if(!empresa){ $('#jEmp').closest('.field').classList.add('err'); $('#jEmp').focus(); return; }
     const btn = e.submitter || $('#jForm button'); btn.disabled = true;
     try{
-      const j = await Central.rpc('rs_admin_crear_jornada', { p:{ empresa, lugar:$('#jLug').value.trim(), fecha:$('#jFec').value || todayISO(), capacitador:$('#jCap').value.trim() || capacitador(), capacitacion:CONFIG.capacitacion.nombre } });
+      const j = await Central.rpc('rs_admin_crear_jornada', { p:{ empresa, lugar:$('#jLug').value.trim(), fecha:$('#jFec').value || todayISO(), capacitador:$('#jCap').value.trim() || capacitador(), capacitacion:CONFIG.capacitacion.nombre, contacto_email:$('#jMail').value.trim() } });
       AC.open = j.id; await acReload();
     }catch(err){ btn.disabled = false; acError(err); }
   };
   $$('[data-links]', acEl).forEach(b => b.onclick = () => { AC.open = AC.open === b.dataset.links ? null : b.dataset.links; acRender(); });
   $$('[data-copy]', acEl).forEach(b => b.onclick = () => copyText(b.dataset.copy, b));
+  $$('[data-qr]', acEl).forEach(b => b.onclick = () => { AC.qr[b.dataset.qr] = b.dataset.k; acRender(); });
+  $$('[data-share]', acEl).forEach(b => b.onclick = () => shareDialog(AC.jornadas.find(j => j.id === b.dataset.share)));
   $$('[data-estado]', acEl).forEach(b => b.onclick = async () => {
     const cerrar = b.dataset.nuevo === 'cerrada';
     if(cerrar && !(await confirmDialog('Cerrar jornada','Los participantes no podrán sumar nuevos registros a esta jornada. Podés reabrirla después.','Cerrar jornada','Cancelar'))) return;
@@ -242,7 +255,7 @@ function resultadosHTML(){
         <div><label for="fD">Desde</label><input id="fD" type="date" value="${esc(F.desde)}"></div>
         <div><label for="fH">Hasta</label><input id="fH" type="date" value="${esc(F.hasta)}"></div>
       </div>
-      <div class="actions" style="margin-top:4px"><button class="btn ghost sm" id="fClear">${ic('refresh')} Limpiar filtros</button><button class="btn primary sm" id="fCsv">${ic('download')} EXPORTAR RESULTADOS (CSV)</button></div>
+      <div class="actions" style="margin-top:4px"><button class="btn ghost sm" id="fClear">${ic('refresh')} Limpiar filtros</button><button class="btn ghost sm" id="fCsv">${ic('download')} CSV</button><button class="btn primary sm" id="fXlsx">${ic('download')} EXCEL</button></div>
     </div>
     <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Jornada</th><th>Legajo</th><th>Apellido y nombre</th><th>Empresa</th><th>Sector</th><th>Vehículo</th><th>%</th><th>Int.</th><th>Estado</th><th>Firma</th><th>Verificación</th><th></th></tr></thead>
       <tbody>${rows.length ? rows.map(r => `<tr>
@@ -251,7 +264,9 @@ function resultadosHTML(){
         <td>${r.porcentaje != null ? r.porcentaje + '%' : '–'}</td><td>${r.intentos || 0}</td><td><span class="st ${stCls(r.estado)}">${esc(r.estado)}</span></td>
         <td>${r.firmado ? `<span style="color:#5fd699">${ic('check')}</span>` : '<span class="dim">–</span>'}</td>
         <td><a href="verificar.html?c=${esc(r.verificacion)}" target="_blank" rel="noopener" style="color:var(--amber)">${esc(r.verificacion)}</a></td>
-        <td><button class="icon-btn" data-del="${esc(r.id)}" title="Eliminar registro" aria-label="Eliminar registro de ${esc(r.apellido)}">${ic('trash')}</button></td>
+        <td class="row-acts"><a class="icon-btn" href="${docUrl('ind', r)}" target="_blank" rel="noopener" title="Informe individual" aria-label="Informe individual de ${esc(r.apellido)}">${ic('user')}</a>
+          ${r.estado !== 'SIN COMPLETAR' || r.firmado ? `<a class="icon-btn" href="${docUrl('cert', r)}" target="_blank" rel="noopener" title="${r.estado === 'APROBADO' ? 'Certificado de aprobación' : 'Constancia de asistencia'}" aria-label="Certificado de ${esc(r.apellido)}">${ic('award')}</a>` : ''}
+          <button class="icon-btn" data-del="${esc(r.id)}" title="Eliminar registro" aria-label="Eliminar registro de ${esc(r.apellido)}">${ic('trash')}</button></td>
       </tr>`).join('') : `<tr><td colspan="13" class="muted" style="text-align:center;padding:26px">No hay registros${AC.registros.length ? ' que coincidan con los filtros' : ''}.</td></tr>`}</tbody></table></div>`;
 }
 function bindResultados(){
@@ -266,6 +281,9 @@ function bindResultados(){
   });
   $('#fClear').onclick = () => { Object.keys(AC.f).forEach(k => AC.f[k] = ''); acRender(); };
   $('#fCsv').onclick = () => acCsv(acRows());
+  $('#fXlsx').onclick = () => { const ids = new Set(acRows().map(r => r.id)); const regs = (AC.T ? AC.T.registros : []).filter(r => ids.has(r.id));
+    const { sheets } = hojasDetalle(regs.length ? regs : acRows().map(r => ({ ...r, fecha:An.day(r.fecha_inicio || r.created_at), empresa:r.empresa })), AC.jornadas, AC.T ? AC.T.nomina : [], [], []);
+    XLSX.download(`resultados_fatiga_${isoLocal(new Date())}.xlsx`, sheets.filter(s => ['Participantes','Temas','Riesgo por sector','Riesgo por vehículo','Vencimientos'].includes(s.name))); };
   $$('[data-del]', acEl).forEach(b => b.onclick = async () => {
     const r = AC.registros.find(x => x.id === b.dataset.del);
     if(!(await confirmDialog('Eliminar registro', `Se eliminará el registro de ${esc(r.apellido)}, ${esc(r.nombre)} (legajo ${esc(r.legajo)}). Su constancia dejará de poder verificarse. Esta acción no se puede deshacer.`, 'Eliminar', 'Cancelar', true))) return;
@@ -293,4 +311,44 @@ async function acStart(){
       return acForgot('', fb('bad','El enlace no es válido o venció', 'Pedí un enlace nuevo. Cada enlace sirve una sola vez y vence en poco tiempo.')); }
     s ? await acAfterLogin(s) : acLogin();
   }catch(e){ acLogin(); }
+}
+
+/* ---------- Documentos y enlace para el cliente ---------- */
+function docUrl(doc, r){ const u = new URL('documento.html', location.href); u.searchParams.set('doc', doc); if(r.jornada_id) u.searchParams.set('j', r.jornada_id); u.searchParams.set('r', r.id); return u.pathname.split('/').pop() + u.search; }
+function informePublicoUrl(tok){ return new URL('informe.html?t=' + tok, location.href).href; }
+function shareDialog(j, msg){
+  const d = $('#dlg'), url = j.informe_token ? informePublicoUrl(j.informe_token) : '';
+  const asunto = `Informe de capacitación · ${j.empresa} · ${fmtDate(j.fecha + 'T12:00:00')}`;
+  const cuerpo = `Hola,\n\nLes comparto el informe de la capacitación "${j.capacitacion}" realizada el ${fmtDate(j.fecha + 'T12:00:00')}${j.lugar ? ' en ' + j.lugar : ''}.\n\n${url ? 'Pueden verlo, imprimirlo o guardarlo en PDF desde este enlace:\n' + url + '\n\n' : ''}Incluye resultados del grupo, temas a reforzar, mapa de riesgo y planilla de asistencia con firmas.\n\nSaludos,\n${j.capacitador}\n${CONFIG.consultora.nombre}`;
+  const mailto = `mailto:${encodeURIComponent(j.contacto_email || '')}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`;
+  d.classList.add('wide');
+  d.innerHTML = `<h2>${ic('message')} Compartir con el cliente</h2>
+    <p class="muted sm">${esc(j.empresa)} · jornada ${esc(j.codigo)} · ${fmtDate(j.fecha + 'T12:00:00')}</p>
+    ${Datos.v2 === false ? fb('info','Requiere actualización de la base', 'El enlace para compartir y el email de contacto se activan al aplicar supabase/02_reportes.sql. Mientras tanto, abrí el informe grupal, guardalo en PDF y adjuntalo en el mail.') : `
+    <div class="field" style="margin-top:12px"><label for="shMail">EMAIL DE CONTACTO DE LA EMPRESA</label>
+      <div style="display:flex;gap:8px"><input id="shMail" type="email" maxlength="120" value="${esc(j.contacto_email || '')}" placeholder="seguridad@empresa.com" style="flex:1"><button class="btn ghost sm" id="shSaveMail">${ic('check')} Guardar</button></div></div>
+    <p class="eyebrow" style="margin-top:16px">Enlace del informe</p>
+    ${url ? `<div class="jlink" style="grid-template-columns:1fr auto"><code style="overflow-wrap:anywhere">${esc(url.replace(/^https?:\/\//, ''))}</code><button class="btn sm ghost" data-copyurl="${esc(url)}">${ic('clipboard')} Copiar</button></div>
+      <p class="sm dim" style="margin-top:6px">${ic('lock')} Quien tenga el enlace puede ver el informe, incluida la planilla de asistencia con nombres y firmas. Desactivalo cuando ya no haga falta.</p>`
+      : `<p class="muted sm">El informe todavía no tiene enlace público. Al crearlo, la empresa puede verlo sin usuario ni contraseña.</p>`}`}
+    <div id="shMsg">${msg || ''}</div>
+    <div class="actions" style="flex-wrap:wrap">
+      ${Datos.v2 === false ? '' : url ? `<button class="btn ghost" id="shOff">${ic('lock')} Desactivar enlace</button>` : `<button class="btn ghost" id="shOn">${ic('route')} Crear enlace</button>`}
+      <button class="btn ghost" id="shClose">Cerrar</button>
+      <a class="btn primary" id="shMailto" href="${esc(mailto)}">${ic('message')} Redactar email</a>
+    </div>
+    <p class="sm dim" style="margin-top:8px">"Redactar email" abre tu programa de correo con el mensaje listo${j.contacto_email ? ' para ' + esc(j.contacto_email) : ''}. Para que el sistema lo envíe solo, hace falta configurar un servicio de correo (ver README).</p>`;
+  const close = () => { d.close(); d.classList.remove('wide'); };
+  $('#shClose', d).onclick = close; d.oncancel = e => { e.preventDefault(); close(); };
+  const fail = e => { $('#shMsg', d).innerHTML = fb('bad','No se pudo completar', esc(Datos.faltaFuncion(e) ? Datos.avisoV2() : e.message)); };
+  const toggle = async on => { try{ const r = await Central.rpc('rs_admin_compartir_informe', { p_id:j.id, p_activar:on }); j.informe_token = r.token; shareDialog(j, on ? fb('ok','Enlace creado','Copialo o usá "Redactar email".') : fb('ok','Enlace desactivado','El enlace anterior dejó de funcionar.')); }catch(e){ fail(e); } };
+  if($('#shOn', d)) $('#shOn', d).onclick = () => toggle(true);
+  if($('#shOff', d)) $('#shOff', d).onclick = async () => { if(await confirmDialog('Desactivar enlace','El enlace dejará de funcionar para quien lo tenga. Podés crear uno nuevo después.','Desactivar','Cancelar')) toggle(false); else shareDialog(j); };
+  if($('[data-copyurl]', d)) $('[data-copyurl]', d).onclick = e => copyText(e.currentTarget.dataset.copyurl, e.currentTarget);
+  if($('#shSaveMail', d)) $('#shSaveMail', d).onclick = async () => {
+    const v = $('#shMail', d).value.trim();
+    if(v && !/^\S+@\S+\.\S+$/.test(v)) return fail(new Error('Email inválido'));
+    try{ await Central.rpc('rs_admin_contacto_jornada', { p_id:j.id, p_email:v }); j.contacto_email = v || null; shareDialog(j, fb('ok','Email guardado','')); }catch(e){ fail(e); }
+  };
+  if(!d.open) d.showModal();
 }
