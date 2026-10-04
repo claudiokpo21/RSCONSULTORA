@@ -137,9 +137,12 @@ Videos animados (≈ 1 minuto, Full HD, con subtítulos) en las pantallas con mu
 |---|---|---|
 | 3 · ¿Qué es la fatiga? | ¿Qué es la fatiga? | `videos/v1-que-es-la-fatiga.mp4` |
 | 5 · Factores de riesgo | ¿Qué favorece la fatiga? | `videos/v2-factores-de-riesgo.mp4` |
+| 8 · Señales de alerta | Señales de alerta | `videos/v3-senales-de-alerta.mp4` |
+| 10 · Vehículos livianos | Livianos y pesados | `videos/v4-livianos-y-pesados.mp4` |
 | 16 · Qué hacer ante la fatiga | Si aparece la fatiga | `videos/v6-que-hacer.mp4` |
+| 17 · Prevención | Prevenir la fatiga | `videos/v5-prevencion.mp4` |
 
-Pendientes (falta la voz): Señales de alerta (pantalla 8), Livianos y pesados (10) y Prevención (17). Para sumar uno: copiar el `.mp4` y su portada `.jpg` en `videos/` y agregar una línea en `assets/videos.js` (`VIDEOS_PRES`).
+Para sumar otro: copiar el `.mp4` y su portada `.jpg` en `videos/` y agregar una línea en `assets/videos.js` (`VIDEOS_PRES`).
 
 ## Alternativa: planilla de Google Sheets
 
