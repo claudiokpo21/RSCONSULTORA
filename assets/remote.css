@@ -81,3 +81,5 @@ body.rc-app{min-height:100dvh}
 .rc-sheet>div{width:100%;max-width:520px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
 .rc-sheet h2{font-size:1.1rem;display:flex;justify-content:space-between;align-items:center}
 .rc-top3 li b{white-space:nowrap;flex:none}
+.rc-video{border-color:rgba(245,179,1,.45)}
+.rc-vt{font-weight:800;font-size:1.05rem;margin-top:4px}

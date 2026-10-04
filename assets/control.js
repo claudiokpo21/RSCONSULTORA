@@ -103,6 +103,11 @@ function pres(s){
     </div>
     ${s.nextMod ? `<div class="rc-card rc-next">${ic('chev')} <span>A continuación: <b>${esc(s.nextMod)}</b></span></div>` : ''}
     ${s.blank ? fb('warn', 'Pantalla en pausa', 'Los participantes ven el logo de RS Consultora. Tocá “Pausa” otra vez para volver.') : ''}
+    ${s.video ? `<div class="rc-card rc-video"><p class="rc-eyebrow">Video de esta pantalla</p><p class="rc-vt">${esc(s.video.titulo)}</p>
+      <div class="rc-row" style="margin-top:10px">
+        <button class="btn ${s.video.reproduciendo ? 'ghost' : 'primary'} rc-small" data-a="video">${ic(s.video.reproduciendo ? 'pause' : 'play')} ${s.video.reproduciendo ? 'Pausar' : s.video.abierto ? 'Seguir' : 'Reproducir'}</button>
+        ${s.video.abierto ? `<button class="btn ghost rc-small" data-a="videoClose">${ic('x')} Cerrar video</button>` : ''}
+      </div></div>` : ''}
     <div class="rc-row">
       <button class="btn ghost rc-small ${s.blank ? 'on' : ''}" data-a="blank">${ic('pause')} Pausa</button>
       <button class="btn ghost rc-small" data-a="list">${ic('clipboard')} Pantallas</button>
@@ -175,6 +180,7 @@ async function act(a){
   if(!s) return;
   if(a === 'next' || a === 'prev') return cmd(a, { from:s.i });
   if(a === 'blank') return cmd('blank');
+  if(a === 'video' || a === 'videoClose') return cmd(a);
   if(a === 'list') return openList();
   if(a === 'tovivo'){ if(await confirmDialog('Ir al desafío en vivo', 'La computadora va a abrir la sala del desafío. Vas a poder volver a la presentación desde acá.', 'Ir al desafío', 'Cancelar')) cmd('open', { page:'vivo' }); return; }
   if(a === 'topres') return cmd('open', { page:'pres' });

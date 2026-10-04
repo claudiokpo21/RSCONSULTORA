@@ -34,6 +34,7 @@ assets/admin-tablero.js · admin-empresas.js · tablero.css  ← Tablero y Empre
 assets/informe-lib.js · informe.js · documento.js · informe.css · documento.css  ← informes y certificados A4
 assets/xlsx-lite.js · reportes-excel.js  ← Excel con formato (generado en el navegador, sin librerías externas)
 assets/diagnostico.js  ← diagnóstico inicial
+assets/videos.js · videos.css · videos/  ← videos con voz dentro de la presentación
 supabase/02_reportes.sql  ← actualización de la base para los reportes (ejecutar una vez)
 supabase/04_registro_individual.sql  ← firma en certificados de evaluaciones hechas sin código de jornada (ejecutar una vez)
 apps-script/Code.gs  ← receptor de resultados para Google Sheets (opcional)
@@ -127,6 +128,18 @@ Mientras no se ejecute, el sistema funciona en **modo compatible**: tablero, map
 - **Satisfacción:** al finalizar la evaluación, calificación de 1 a 5 y comentario opcional. En los informes se muestran sin nombre.
 - **Compartir con el cliente:** *Jornadas → Compartir con el cliente* crea un enlace secreto al informe grupal y arma el email (se abre en tu correo). **Quien tenga el enlace ve el informe, incluida la planilla con nombres y firmas.** Se puede desactivar en cualquier momento. El envío automático sin abrir el correo requiere un proveedor de email (por ejemplo, SMTP propio o Resend).
 - **Excel:** tablero completo (resumen, jornadas, participantes, temas, empresas, vencimientos, antes y después, percepción de riesgo, comentarios) y por empresa (con pendientes de la nómina), con encabezados, filtros y estados resaltados.
+
+## Videos con voz
+
+Videos animados (≈ 1 minuto, Full HD, con subtítulos) en las pantallas con mucho texto. En la pantalla aparece **▶ Video**; se abre a pantalla completa y se cierra al terminar, con **Esc** o con la ✕. Tecla **V**: abrir / pausar. Desde el **control remoto**: Reproducir, Pausar y Cerrar video.
+
+| Pantalla | Video | Archivo |
+|---|---|---|
+| 3 · ¿Qué es la fatiga? | ¿Qué es la fatiga? | `videos/v1-que-es-la-fatiga.mp4` |
+| 5 · Factores de riesgo | ¿Qué favorece la fatiga? | `videos/v2-factores-de-riesgo.mp4` |
+| 16 · Qué hacer ante la fatiga | Si aparece la fatiga | `videos/v6-que-hacer.mp4` |
+
+Pendientes (falta la voz): Señales de alerta (pantalla 8), Livianos y pesados (10) y Prevención (17). Para sumar uno: copiar el `.mp4` y su portada `.jpg` en `videos/` y agregar una línea en `assets/videos.js` (`VIDEOS_PRES`).
 
 ## Alternativa: planilla de Google Sheets
 

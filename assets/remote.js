@@ -30,7 +30,8 @@ const Remote = (() => {
   function presState(){
     const i = State.current;
     return { page:'pres', i, n:SLIDES.length, mod:SLIDES[i].mod, title:txt('#stage .s-title', 160), lead:txt('#stage .lead', 320),
-      nextMod: SLIDES[i + 1] ? SLIDES[i + 1].mod : '', list: SLIDES.map(s => s.mod) };
+      nextMod: SLIDES[i + 1] ? SLIDES[i + 1].mod : '', list: SLIDES.map(s => s.mod),
+      video: typeof VideoPres !== 'undefined' ? VideoPres.info() : null };
   }
   function vivoState(){
     const it = H.q >= 0 ? ITEMS[H.q] : null, b = document.getElementById('primaryAction');
@@ -72,6 +73,8 @@ const Remote = (() => {
       else if(a === 'prev' && same) go(State.current - 1);
       else if(a === 'goto' && Number.isInteger(m.i)) go(m.i);
       else if(a === 'open' && m.page === 'vivo') leave('vivo.html' + jq());
+      else if(a === 'video' && typeof VideoPres !== 'undefined') VideoPres.toggle();
+      else if(a === 'videoClose' && typeof VideoPres !== 'undefined') VideoPres.cerrar();
     } else {
       const b = document.getElementById('primaryAction');
       if(a === 'primary'){ if(b && !b.disabled && (m.phase === undefined || m.phase === H.phase)) b.click(); }
