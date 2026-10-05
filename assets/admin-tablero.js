@@ -7,7 +7,7 @@
 
 const TB = { f:{ empresa:'', periodo:'12', tipo:'' }, dim:'sector' };
 const SHORT = ['Definición','Señales','Microsueño','Factores','Sueño','Livianos','Pesados','Prevención','Café','Qué hacer'];
-const C_PRE = '#3987e5', C_POST = '#c98500', C_BAR = '#f5b301';
+const C_PRE = '#3987e5', C_POST = '#c98500', C_REF = '#2fb36d', C_BAR = '#f5b301';
 
 /* ---------- Filtros ---------- */
 function tbDesde(){
@@ -17,11 +17,11 @@ function tbDesde(){
   return '';
 }
 function tbData(){
-  const T = AC.T || { registros:[], desafios:[], diagnosticos:[], nomina:[] }, desde = tbDesde(), ek = An.key(TB.f.empresa);
+  const T = AC.T || { registros:[], desafios:[], diagnosticos:[], refuerzos:[], nomina:[] }, desde = tbDesde(), ek = An.key(TB.f.empresa);
   const okE = e => !ek || An.key(e) === ek, okF = f => !desde || An.day(f) >= desde;
   const jornadas = AC.jornadas.filter(j => okE(j.empresa) && okF(j.fecha)), jids = new Set(jornadas.map(j => j.id));
   const regs = T.registros.filter(r => okE(r.empresa) && okF(r.fecha) && (!TB.f.tipo || r.tipo_vehiculo === TB.f.tipo));
-  return { jornadas, regs, desafios:T.desafios.filter(d => jids.has(d.jornada_id)), diags:T.diagnosticos.filter(d => jids.has(d.jornada_id)),
+  return { jornadas, regs, desafios:T.desafios.filter(d => jids.has(d.jornada_id)), diags:T.diagnosticos.filter(d => jids.has(d.jornada_id)), refs:(T.refuerzos || []).filter(d => jids.has(d.jornada_id)),
     nomina:T.nomina.filter(n => okE(n.empresa)), todos:T.registros };
 }
 function tbEmpresas(){ const s = new Map(); AC.jornadas.forEach(j => s.set(An.key(j.empresa), j.empresa)); (AC.T ? AC.T.registros : []).forEach(r => r.empresa && !s.has(An.key(r.empresa)) && s.set(An.key(r.empresa), r.empresa)); return [...s.values()].sort((a, b) => a.localeCompare(b, 'es')); }
@@ -78,6 +78,16 @@ function antesDespuesHTML(ad){
       <span class="trk2"><i style="width:${x.post || 0}%;background:${C_POST}"></i></span><span class="vl">${x.post ?? '–'}%</span></div>`).join('')}</div>
     <div class="tb-legend"><span><i style="background:${C_PRE}"></i>Antes (diagnóstico)</span><span><i style="background:${C_POST}"></i>Después (evaluación)</span></div>`;
 }
+function retencionHTML(rt){
+  if(Datos.v2 === false) return `<p class="muted sm">${ic('info')} ${Datos.avisoV2()}</p>`;
+  if(!rt.n) return `<p class="muted sm">Todavía no hay respuestas al refuerzo en este período. Enviá el link del refuerzo ${REP.refuerzoDias} días después de la jornada (Jornadas → Links y QR → WhatsApp).</p>`;
+  return `<div class="tb-pp-head"><div><small>Evaluación</small><b style="color:${C_POST}">${rt.pre ?? '–'}%</b></div>${ic('arrow')}<div><small>Refuerzo</small><b style="color:${C_REF}">${rt.post ?? '–'}%</b></div>
+      <p class="muted sm">${rt.n} respuesta${rt.n === 1 ? '' : 's'} anónima${rt.n === 1 ? '' : 's'} · ${rt.items.length} temas</p></div>
+    <div class="tb-pp">${rt.items.map(x => `<div class="tb-pp-row"><span class="lb" title="${esc(x.q.q)}">${esc(tema(x.k))}</span>
+      <span class="trk2"><i style="width:${x.pre || 0}%;background:${C_POST}"></i></span><span class="vl">${x.pre ?? '–'}%</span>
+      <span class="trk2"><i style="width:${x.post || 0}%;background:${C_REF}"></i></span><span class="vl">${x.post ?? '–'}%</span></div>`).join('')}</div>
+    <div class="tb-legend"><span><i style="background:${C_POST}"></i>Evaluación final</span><span><i style="background:${C_REF}"></i>Refuerzo (${REP.refuerzoDias} días)</span></div>`;
+}
 function satisfHTML(s){
   if(Datos.v2 === false) return `<p class="muted sm">${ic('info')} ${Datos.avisoV2()}</p>`;
   if(!s.n) return `<p class="muted sm">Todavía no hay calificaciones en este período.</p>`;
@@ -96,7 +106,7 @@ function percepcionHTML(P){
 /* ---------- Pestaña ---------- */
 function tableroHTML(){
   if(!AC.T) return `<div class="panel">${fb('warn','No se pudieron cargar los datos del tablero','Tocá Actualizar para reintentar.')}</div>`;
-  const D = tbData(), R = An.resumen(D.regs), pers = An.personas(D.regs), s = An.satisfaccion(D.regs), ad = An.antesDespues(D.diags, D.regs);
+  const D = tbData(), R = An.resumen(D.regs), pers = An.personas(D.regs), s = An.satisfaccion(D.regs), ad = An.antesDespues(D.diags, D.regs), rt = An.retencion(D.refs, D.regs);
   const E = An.empresas(D.regs, D.jornadas, D.nomina), meses = An.porMes(D.regs, 12), P = An.percepcion(D.desafios), pp = An.porPregunta(D.regs);
   const emp = new Set(D.jornadas.map(j => An.key(j.empresa)).concat(D.regs.map(r => An.key(r.empresa))).filter(Boolean)).size;
   const sel = (id, label, opts, val, all) => `<div><label for="${id}">${label}</label><select id="${id}">${all ? `<option value="">${all}</option>` : ''}${opts.map(([v, t]) => `<option value="${esc(v)}" ${val === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`;
@@ -117,6 +127,7 @@ function tableroHTML(){
       ${kpi('Puntaje promedio', R.promedio != null ? R.promedio + '%' : '–', `criterio ${CONFIG.aprobacion.porcentajeMinimo}%`)}
       ${kpi('Satisfacción', s.prom != null ? s.prom.toFixed(1).replace('.', ',') + ' / 5' : '–', Datos.v2 === false ? 'requiere actualización' : `${s.n} respuesta${s.n === 1 ? '' : 's'}`)}
       ${kpi('Antes → después', ad.pre != null && ad.post != null ? `${ad.pre}% → ${ad.post}%` : '–', Datos.v2 === false ? 'requiere actualización' : 'aciertos del grupo')}
+      ${kpi('Retención', rt.post != null ? rt.post + '%' : '–', rt.n ? `refuerzo a ${REP.refuerzoDias} días · ${rt.n} resp.` : 'sin refuerzos todavía')}
     </div>
     <div class="tb-grid two">
       <section class="panel"><h3 class="tb-h">Participantes por mes</h3><p class="tb-desc">Últimos 12 meses${TB.f.empresa ? ' · ' + esc(TB.f.empresa) : ''}. Pasá el mouse para ver aprobados y jornadas.</p>${colChart(meses, 'Participantes por mes')}</section>
@@ -130,7 +141,8 @@ function tableroHTML(){
       <section class="panel"><h3 class="tb-h">Antes y después</h3><p class="tb-desc">Diagnóstico anónimo al inicio vs. evaluación final.</p>${antesDespuesHTML(ad)}</section>
       <section class="panel"><h3 class="tb-h">Satisfacción</h3><p class="tb-desc">Calificación de la capacitación (1 a 5).</p>${satisfHTML(s)}</section>
       <section class="panel"><h3 class="tb-h">Percepción de riesgo</h3><p class="tb-desc">Encuestas anónimas del desafío en vivo.</p>${percepcionHTML(P)}</section>
-    </div>`;
+    </div>
+    <section class="panel tb-sec"><h3 class="tb-h">Retención a ${REP.refuerzoDias} días</h3><p class="tb-desc">¿Cuánto se recuerda? Evaluación final vs. refuerzo anónimo (preguntas en otra versión).</p>${retencionHTML(rt)}</section>`;
 }
 function bindTablero(){
   const rerender = () => { $('#acBody').innerHTML = tableroHTML(); bindTablero(); };

@@ -19,7 +19,7 @@ const Datos = {
       try{
         const t = await Central.rpc('rs_admin_tablero');
         this.v2 = true; try{ localStorage.removeItem(this.KEY); }catch(_){}
-        return { registros:t.registros || [], desafios:t.desafios || [], diagnosticos:t.diagnosticos || [], nomina:t.nomina || [] };
+        return { registros:t.registros || [], desafios:t.desafios || [], diagnosticos:t.diagnosticos || [], refuerzos:t.refuerzos || [], nomina:t.nomina || [] };
       }catch(e){ if(!this.faltaFuncion(e)) throw e; this.recordarV1(); }
     }
     this.v2 = false;
@@ -28,14 +28,15 @@ const Datos = {
       Promise.all(jornadas.map(j => Central.rpc('rs_admin_informe', { p_id:j.id }))),
       Central.rpc('rs_admin_registros', { p_jornada:null })
     ]);
-    const registros = [], desafios = [], diagnosticos = [];
+    const registros = [], desafios = [], diagnosticos = [], refuerzos = [];
     infos.forEach((d, i) => {
       const j = jornadas[i]; if(!d) return;
       (d.registros || []).forEach(r => { const x = { ...r, jornada_id:j.id, jornada_codigo:j.codigo, empresa:j.empresa || r.empresa, fecha:j.fecha, firmado:!!r.firma }; delete x.firma; registros.push(x); });
       (d.desafios || []).forEach(x => desafios.push({ jornada_id:j.id, datos:x.datos, created_at:x.created_at }));
       (d.diagnosticos || []).forEach(x => diagnosticos.push({ jornada_id:j.id, respuestas:x }));
+      (d.refuerzos || []).forEach(x => refuerzos.push({ jornada_id:j.id, respuestas:x }));
     });
     (todos || []).filter(r => !r.jornada_id).forEach(r => registros.push({ ...r, fecha:String(r.fecha_fin || r.created_at || '').slice(0, 10) }));
-    return { registros, desafios, diagnosticos, nomina:[] };
+    return { registros, desafios, diagnosticos, refuerzos, nomina:[] };
   }
 };

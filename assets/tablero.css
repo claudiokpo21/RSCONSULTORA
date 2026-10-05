@@ -2,11 +2,11 @@
 .tb-banner{margin-bottom:12px}
 .tb-filters{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .tb-filters .filters{flex:1;margin:0;max-width:720px;grid-template-columns:repeat(3,minmax(170px,1fr))}
-.tb-kpis{grid-template-columns:repeat(6,minmax(0,1fr))}
+.tb-kpis{grid-template-columns:repeat(7,minmax(0,1fr))}
 .tb-kpis .kpi{padding:14px}
 .tb-kpis .kpi span{font-size:.7rem}
 .tb-kpis .kpi b{font-size:clamp(1.25rem,2vw,1.75rem);white-space:nowrap}
-@media (max-width:1100px){ .tb-kpis{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:1100px){ .tb-kpis{grid-template-columns:repeat(4,minmax(0,1fr))} }
 @media (max-width:600px){ .tb-kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
 .kpi small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
 .kpi b{font-variant-numeric:tabular-nums}

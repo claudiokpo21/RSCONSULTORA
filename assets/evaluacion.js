@@ -24,8 +24,8 @@ function centralPayload(){
   return { id:State.recordId, token:State.token, jornada:State.jornada, legajo:p.legajo, nombre:p.nombre, apellido:p.apellido,
     empresa:p.empresa, sector:p.sector, tipo_vehiculo:p.tipoVehiculo, capacitacion:CONFIG.capacitacion.nombre, capacitador:capacitador(),
     fecha_inicio:t.fechaInicio, fecha_fin:t.fechaFin, duracion_min:t.duracion, preguntas:e.preguntas, correctas:e.correctas,
-    intentos:e.intentos, criterio:CONFIG.aprobacion.porcentajeMinimo, respuestas: State.quiz.done ? State.quiz.answers : null, firma:State.firma,
-    satisfaccion: State.satisfaccion || null, comentario: State.comentario || null };
+    intentos:e.intentos, criterio:CONFIG.aprobacion.porcentajeMinimo, respuestas: State.quiz.done ? respuestasGuardadas() : null, firma:State.firma,
+    satisfaccion: State.satisfaccion || null, comentario: State.comentario || null, consentimiento: State.consentimiento || null };
 }
 /** Envía el registro al servidor central (Supabase) y, si está configurada, a la planilla de Google. */
 async function sendAll(){
@@ -67,6 +67,9 @@ function viewForm(v, errs){
       <p class="sm dim" style="margin-top:10px"><span style="color:var(--amber)">*</span> Campos obligatorios</p>
       ${errs.general ? `<div class="form-error">${fb('bad', errs.general, '')}</div>` : ''}
       <div class="privacy">${ic('lock')}<span>${privacidad}</span></div>
+      <label class="consent ${errs.consent ? 'err' : ''}"><input type="checkbox" name="consent" ${v.consent ? 'checked' : ''} aria-describedby="m-consent">
+        <span>Leí el <a href="privacidad.html" target="_blank" rel="noopener">aviso de privacidad</a> y acepto que mis datos se usen para registrar esta capacitación. <span class="req">*</span></span></label>
+      ${errs.consent ? `<p class="msg consent-msg" id="m-consent">${errs.consent}</p>` : ''}
       <div class="actions"><button type="submit" class="btn primary lg">${ic('arrow')} CONTINUAR</button></div>
     </form>
   </div>`);
@@ -75,6 +78,7 @@ function viewForm(v, errs){
 }
 function submitForm(fd){
   const v = {}; ['legajo','nombre','apellido','empresa','sector','tipoVehiculo'].forEach(k => v[k] = String(fd.get(k) || '').trim().replace(/\s+/g, ' '));
+  v.consent = fd.get('consent') === 'on';
   v.legajo = v.legajo.toUpperCase();
   const errs = {}, nameRe = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]{2,60}$/;
   if(!v.legajo) errs.legajo = 'El legajo es obligatorio.';
@@ -84,7 +88,9 @@ function submitForm(fd){
   if(!v.apellido) errs.apellido = 'El apellido es obligatorio.'; else if(!nameRe.test(v.apellido)) errs.apellido = 'Ingresá un apellido válido (solo letras).';
   if(v.empresa.length > 80) v.empresa = v.empresa.slice(0, 80);
   if(v.sector.length > 80) v.sector = v.sector.slice(0, 80);
+  if(!v.consent) errs.consent = 'Para registrar la capacitación tenés que aceptar el aviso de privacidad.';
   if(Object.keys(errs).length){ errs.general = 'Revisá los campos marcados.'; viewForm(v, errs); return; }
+  State.consentimiento = new Date().toISOString();
   const cap = s => s.toLowerCase().replace(/(^|[\s'-])(\S)/g, (m, a, b) => a + b.toUpperCase());
   State.participant = { legajo:v.legajo, nombre:cap(v.nombre), apellido:cap(v.apellido), empresa:v.empresa, sector:v.sector, tipoVehiculo:v.tipoVehiculo };
   viewConfirm();
@@ -99,9 +105,9 @@ function viewConfirm(){
     <table class="confirm-table">${row('Legajo',p.legajo)}${row('Nombre',p.nombre)}${row('Apellido',p.apellido)}${row('Empresa',p.empresa)}${row('Sector / Área',p.sector)}${row('Tipo de vehículo',p.tipoVehiculo)}</table>
     <div class="actions"><button class="btn ghost" id="cEdit">${ic('arrowl')} Corregir datos</button><button class="btn primary" id="cOk">${ic('check')} Confirmar datos</button></div>
   </div>`, '#cOk');
-  $('#cEdit').onclick = () => viewForm(State.participant, {});
+  $('#cEdit').onclick = () => viewForm({ ...State.participant, consent: !!State.consentimiento }, {});
   $('#cOk').onclick = () => {
-    if(SessionReg.has(State.participant.legajo)){ viewForm(State.participant, { legajo:'Este legajo ya fue registrado en esta sesión.', general:'Registro duplicado.' }); return; }
+    if(SessionReg.has(State.participant.legajo)){ viewForm({ ...State.participant, consent: !!State.consentimiento }, { legajo:'Este legajo ya fue registrado en esta sesión.', general:'Registro duplicado.' }); return; }
     State.recordId = uid();
     State.training.fechaInicio = new Date().toISOString();
     SessionReg.add(State.participant.legajo);
@@ -204,9 +210,20 @@ function viewRepaso(){
 }
 
 /* ---------- 4. Preguntas ---------- */
-function startQuiz(){ State.quiz = { idx:0, answers:[], done:false }; viewQuestion(); }
+function startQuiz(){ State.quiz = { idx:0, answers:[], done:false, preguntas:sortearEvaluacion() }; viewQuestion(); }
+/** Preguntas del intento actual (sorteadas). Si el intento es anterior al banco, usa las originales. */
+function preguntasActuales(){
+  const P = State.quiz.preguntas;
+  return Array.isArray(P) && P.length ? P.map(vistaPregunta) : CONTENT.quiz;
+}
+/** Respuestas en el formato que se guarda: por tema, versión de la pregunta y opción original elegida. */
+function respuestasGuardadas(){
+  const P = State.quiz.preguntas, A = State.quiz.answers;
+  if(!Array.isArray(P) || !P.length) return A;
+  return P.map((p, i) => A[i] == null ? null : { v:p.v, a:p.orden[A[i]] });
+}
 function viewQuestion(){
-  const Q = CONTENT.quiz, qs = State.quiz, i = qs.idx, q = Q[i];
+  const Q = preguntasActuales(), qs = State.quiz, i = qs.idx, q = Q[i];
   progress(20 + Math.round(i / Q.length * 72));
   show(`<div class="qcard">
     <div class="qhead"><span class="score-pill">Pregunta ${i+1} de ${Q.length}</span>
@@ -228,7 +245,7 @@ function viewQuestion(){
   });
 }
 function finishQuiz(){
-  const Q = CONTENT.quiz, e = State.evaluation;
+  const Q = preguntasActuales(), e = State.evaluation;
   e.preguntas = Q.length;
   e.correctas = Q.filter((q,k) => State.quiz.answers[k] === q.c).length;
   e.incorrectas = Q.length - e.correctas;
@@ -259,7 +276,7 @@ function paintSync(){
 }
 function viewResult(){
   progress(100);
-  const e = State.evaluation, ok = isApproved(e.porcentaje), min = CONFIG.aprobacion.porcentajeMinimo, Q = CONTENT.quiz;
+  const e = State.evaluation, ok = isApproved(e.porcentaje), min = CONFIG.aprobacion.porcentajeMinimo, Q = preguntasActuales();
   const msg = ok ? '¡Muy bien! Demostraste comprender los conceptos clave para prevenir la fatiga al conducir. Lo más importante es aplicarlos en cada viaje.'
     : e.porcentaje >= 60 ? 'Tenés una buena base, pero hay conceptos para reforzar. Revisá tus respuestas y volvé a intentarlo.'
     : 'Te recomendamos revisar las explicaciones de cada pregunta y volver a intentarlo. Ante cualquier duda, consultá al capacitador.';

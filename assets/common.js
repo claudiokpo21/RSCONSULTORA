@@ -233,6 +233,11 @@ function despertador(){
   };
 }
 
+/* ---------- Modo sin internet: registra sw.js (ver assets/offline.js) ---------- */
+if('serviceWorker' in navigator && (location.protocol === 'https:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname))){
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
 const TIPOS = ['Vehículo liviano','Vehículo pesado','Ambos'];
 function brandMarkHTML(){ const logo = CONFIG.organizacion.logo; return logo ? `<img class="brand-logo" src="${esc(logo)}" alt="${esc(CONFIG.consultora.nombre)}">` : `<span class="brand-mark rs" aria-label="${esc(CONFIG.consultora.nombre)}">${esc(CONFIG.consultora.iniciales)}</span>`; }
 

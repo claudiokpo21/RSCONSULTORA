@@ -48,17 +48,18 @@ function mapaTabla(rows, dimLabel){
 }
 /* Dos series (antes / después) con etiqueta directa en cada barra */
 const C_ANTES = '#2a78d6', C_DESPUES = '#eda100';
-function antesDespuesChart(ad){
+function antesDespuesChart(ad, o){
+  o = Object.assign({ a:'Antes (diagnóstico anónimo)', b:'Después (evaluación final)', ca:C_ANTES, cb:C_DESPUES }, o || {});
   const W = 640, labelW = 190, rightW = 46, plotW = W - labelW - rightW, bh = 10, gap = 2, grp = bh * 2 + gap + 7;
   const H = 8 + ad.items.length * grp + 16, sx = v => (Math.max(0, v || 0) / 100) * plotW;
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Antes y después">
     ${[0, 25, 50, 75, 100].map(t => `<line x1="${labelW + sx(t)}" x2="${labelW + sx(t)}" y1="4" y2="${H - 16}" stroke="${GRID}"/><text x="${labelW + sx(t)}" y="${H - 3}" font-size="10" fill="${MUTED}" text-anchor="middle">${t}%</text>`).join('')}
     ${ad.items.map((x, i) => { const y = 8 + i * grp; return `<g><title>${esc(x.q.q)}</title>
       <text x="${labelW - 10}" y="${y + bh + 4}" font-size="11" fill="${INK}" text-anchor="end">${esc(tema(x.k))}</text>
-      <path d="${barPath(labelW, y, sx(x.pre), bh, 4)}" fill="${C_ANTES}"/><text x="${labelW + sx(x.pre) + 5}" y="${y + bh - 2}" font-size="10" fill="${INK}">${x.pre ?? '–'}%</text>
-      <path d="${barPath(labelW, y + bh + gap, sx(x.post), bh, 4)}" fill="${C_DESPUES}"/><text x="${labelW + sx(x.post) + 5}" y="${y + bh * 2 + gap - 2}" font-size="10" font-weight="700" fill="${INK}">${x.post ?? '–'}%</text></g>`; }).join('')}
+      <path d="${barPath(labelW, y, sx(x.pre), bh, 4)}" fill="${o.ca}"/><text x="${labelW + sx(x.pre) + 5}" y="${y + bh - 2}" font-size="10" fill="${INK}">${x.pre ?? '–'}%</text>
+      <path d="${barPath(labelW, y + bh + gap, sx(x.post), bh, 4)}" fill="${o.cb}"/><text x="${labelW + sx(x.post) + 5}" y="${y + bh * 2 + gap - 2}" font-size="10" font-weight="700" fill="${INK}">${x.post ?? '–'}%</text></g>`; }).join('')}
     <line x1="${labelW}" x2="${labelW}" y1="4" y2="${H - 16}" stroke="${MUTED}"/></svg>
-    <div class="r-legend"><span><i style="background:${C_ANTES}"></i>Antes (diagnóstico anónimo)</span><span><i style="background:${C_DESPUES}"></i>Después (evaluación final)</span></div>`;
+    <div class="r-legend"><span><i style="background:${o.ca}"></i>${esc(o.a)}</span><span><i style="background:${o.cb}"></i>${esc(o.b)}</span></div>`;
 }
 function estrellas(n){ return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n); }
 function satisfaccionHTML(s){

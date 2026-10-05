@@ -97,7 +97,19 @@ const CONFIG = {
     avisoVencimientoDias: 60,   // anticipación del aviso 'por vencer'
     // Diagnóstico inicial anónimo (antes de la charla): números de pregunta de la evaluación
     // (0 = la primera). Se comparan con la evaluación final para medir el aprendizaje.
-    diagnostico: [1, 2, 4, 8, 9]
+    diagnostico: [1, 2, 4, 8, 9],
+    // Refuerzo a los 30 días: temas de la evaluación (0 = el primero) que se vuelven a preguntar.
+    refuerzo: [2, 8, 9],
+    refuerzoDias: 30
+  },
+
+  // PROTECCIÓN DE DATOS PERSONALES (Ley 25.326). Se muestra en privacidad.html y en el formulario.
+  // Completar con los datos reales del responsable antes de usarlo con trabajadores.
+  privacidad: {
+    responsable: 'RS Consultora',
+    domicilio: '',      // domicilio del responsable de la base de datos
+    contacto: '',       // email para ejercer los derechos de acceso, rectificación y supresión
+    conservacionAnios: 5 // tiempo durante el que se conservan los registros (criterio de RS Consultora)
   }
 };
 

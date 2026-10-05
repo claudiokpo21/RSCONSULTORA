@@ -19,14 +19,14 @@ function analizar(data){
     .map(b => ({ ...b, n: evaluados.filter(r => b.test(r.porcentaje)).length }));
   const conResp = evaluados.filter(r => Array.isArray(r.respuestas) && r.respuestas.length === Q.length);
   const porPregunta = Q.map((q, k) => {
-    const ok = conResp.filter(r => r.respuestas[k] === q.c).length;
+    const ok = conResp.filter(r => respOk(r.respuestas[k], k)).length;
     return { k, q, n: conResp.length, ok, pct: conResp.length ? Math.round(ok / conResp.length * 100) : null };
   });
   const reforzar = porPregunta.filter(x => x.pct != null && x.pct < 80).sort((a, b) => a.pct - b.pct).slice(0, 3);
   const tipos = TIPOS.map(t => ({ t, n: regs.filter(r => r.tipo_vehiculo === t).length }));
   const des = (data.desafios || []).slice(-1)[0];
   const regsF = regs.map(r => ({ ...r, firmado:!!r.firma }));
-  return { sat: An.satisfaccion(regs), ad: An.antesDespues(data.diagnosticos || [], regs),
+  return { sat: An.satisfaccion(regs), ad: An.antesDespues(data.diagnosticos || [], regs), rt: An.retencion(data.refuerzos || [], regs),
     mapaSector: An.mapa(regsF, 'sector'), mapaTipo: An.mapa(regsF, 'tipo_vehiculo'),
     regs, evaluados, aprob, firm, buckets, porPregunta, reforzar, conResp, tipos, desafio: des ? des.datos : null,
     pctAprob: evaluados.length ? Math.round(aprob.length / evaluados.length * 100) : null,
@@ -44,6 +44,7 @@ function conclusion(A){
   if(A.reforzar.length) t += ` Los temas con menor porcentaje de acierto fueron: ${A.reforzar.map(x => `${tema(x.k).toLowerCase()} (${x.pct} %)`).join(', ')}. Se sugiere reforzarlos en charlas de 5 minutos o en la próxima capacitación.`;
   else t += ' No se detectaron temas con bajo porcentaje de acierto.';
   if(A.ad.pre != null && A.ad.post != null) t += ` En las preguntas del diagnóstico inicial, los aciertos del grupo pasaron de ${A.ad.pre} % (antes de la capacitación) a ${A.ad.post} % (evaluación final).`;
+  if(A.rt.n && A.rt.pre != null && A.rt.post != null) t += ` En el refuerzo anónimo posterior (${A.rt.n} respuesta${A.rt.n === 1 ? '' : 's'}), el grupo respondió bien el ${A.rt.post} % de las preguntas de repaso (${A.rt.pre} % en esos temas en la evaluación final).`;
   if(A.sat.n) t += ` Los participantes calificaron la capacitación con ${A.sat.prom.toFixed(1).replace('.', ',')} sobre 5 (${A.sat.n} respuestas).`;
   const peor = A.mapaSector.filter(r => r.n >= 3 && r.prom < min)[0];
   if(peor) t += ` El sector con menor desempeño fue ${peor.grupo} (${peor.prom} % promedio): se recomienda priorizarlo en el refuerzo.`;
@@ -111,10 +112,12 @@ function render(data){
     ${mapaTabla(A.mapaTipo, 'Tipo de vehículo')}
   </section>
 
-  ${A.ad.n || A.sat.n ? `<section class="sheet">
+  ${A.ad.n || A.sat.n || A.rt.n ? `<section class="sheet">
     ${sheetHead(j)}
     <h2 class="r-h2">Antes y después de la capacitación</h2>
     ${A.ad.n ? `<p class="r-note">Diagnóstico anónimo al inicio (${A.ad.n} respuesta${A.ad.n === 1 ? '' : 's'}) comparado con la evaluación final, en las mismas preguntas. Aciertos del grupo: <b>${A.ad.pre ?? '–'} %</b> antes → <b>${A.ad.post ?? '–'} %</b> después.</p>${antesDespuesChart(A.ad)}` : '<p class="r-empty">No se realizó el diagnóstico inicial en esta jornada.</p>'}
+    ${A.rt.n ? `<h2 class="r-h2">Retención: refuerzo a los ${REP.refuerzoDias} días</h2>
+    <p class="r-note">Repaso anónimo posterior a la jornada (${A.rt.n} respuesta${A.rt.n === 1 ? '' : 's'}), con las preguntas en otra versión, comparado con la evaluación final en los mismos temas.</p>${antesDespuesChart(A.rt, { a:'Evaluación final', b:`Refuerzo (${REP.refuerzoDias} días)`, ca:C_DESPUES, cb:'#2f9e64' })}` : ''}
     <h2 class="r-h2">Satisfacción de los participantes</h2>
     ${satisfaccionHTML(A.sat)}
   </section>` : ''}

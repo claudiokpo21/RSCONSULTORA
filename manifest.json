@@ -1,0 +1,11 @@
+{
+  "name": "Fatiga y Conducción Segura · RS Consultora",
+  "short_name": "Fatiga RS",
+  "description": "Capacitación de Higiene y Seguridad: Fatiga y Conducción Segura – Vehículos livianos y pesados.",
+  "start_url": "capacitacion.html",
+  "display": "fullscreen",
+  "background_color": "#0f1216",
+  "theme_color": "#0f1216",
+  "lang": "es-AR",
+  "icons": [ { "src": "assets/favicon.svg", "sizes": "any", "type": "image/svg+xml" } ]
+}

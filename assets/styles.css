@@ -619,3 +619,17 @@ a.btn.green{color:#0c1510}
 .ms-viz.wake::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 6px rgba(229,72,77,.9);background:rgba(229,72,77,.18);animation:msWake 1.2s ease-out forwards;pointer-events:none}
 @keyframes msWake{0%,40%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion: reduce){ .ms-viz.wake::after{animation:none;opacity:.6} }
+
+/* Consentimiento (aviso de privacidad) */
+.consent{display:flex;gap:12px;align-items:flex-start;margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:.9rem;line-height:1.5}
+.consent input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--amber)}
+.consent a{color:var(--amber);font-weight:600}
+.consent.err{border-color:var(--red);background:var(--red-soft)}
+.consent-msg{color:#ff8a8d;font-size:.85rem;margin-top:6px}
+/* Refuerzo en la tarjeta de jornada */
+.jref{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 12px;border-radius:10px;border:1px dashed rgba(47,179,109,.5);background:var(--green-soft);font-size:.88rem}
+.jref>.ic{color:var(--green);flex:none}
+.jref>span{flex:1 1 220px}
+.jqr{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:300px}
+.jqr .seg-btn{padding:6px 10px;font-size:.82rem}
+.jqr .seg{flex-wrap:nowrap}

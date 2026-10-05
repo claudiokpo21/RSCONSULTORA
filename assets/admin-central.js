@@ -132,6 +132,7 @@ function acRender(){
       <h1>${ic('users')} Administración · ${esc(CONFIG.consultora.nombre)}</h1>
       <div class="actions" style="margin:0;align-items:center">
         <span class="who">${ic('user')} ${esc(AC.user.email)}</span>
+        <a class="btn ghost sm" href="guia.html" target="_blank" rel="noopener">${ic('clipboard')} Guía del capacitador</a>
         <button class="btn ghost sm" id="acRefresh">${ic('refresh')} Actualizar</button>
         <button class="btn ghost sm" id="acPw">${ic('lock')} Cambiar contraseña</button>
         <button class="btn ghost sm" id="acLogout">${ic('logout')} Cerrar sesión</button>
@@ -168,9 +169,26 @@ function jornadasHTML(){
     ${AC.jornadas.length ? `<div class="jlist">${AC.jornadas.map(jornadaCard).join('')}</div>`
       : `<div class="panel" style="text-align:center">${ic('calendar','xl')}<p class="muted" style="margin-top:8px">Todavía no hay jornadas. Creá la primera con el formulario de arriba.</p></div>`}`;
 }
+/* ---------- Refuerzo a los N días ---------- */
+function refuerzoDias(){ return (CONFIG.reportes && CONFIG.reportes.refuerzoDias) || 30; }
+function refuerzoFecha(j){ const d = new Date(j.fecha + 'T12:00:00'); d.setDate(d.getDate() + refuerzoDias()); return d; }
+function refuerzoMensaje(j){
+  return `Hola. Hace unas semanas participaste de la capacitación «${CONFIG.capacitacion.nombre}»${j.empresa ? ' en ' + j.empresa : ''}. `
+    + `Te propongo un repaso de 1 minuto: ${(CONFIG.reportes && CONFIG.reportes.refuerzo || [2, 8, 9]).length} preguntas, anónimo (no pide nombre ni legajo). `
+    + `${linkFor('refuerzo.html', j.codigo)}\n${CONFIG.consultora.nombre} · Detenerse a tiempo también es seguridad.`;
+}
+function refuerzoAviso(j){
+  const f = refuerzoFecha(j), hoy = new Date(), dias = Math.round((f - hoy) / 864e5), msg = refuerzoMensaje(j);
+  const cuando = dias > 0 ? `Enviar el <b>${fmtDate(f.toISOString())}</b> (en ${dias} día${dias === 1 ? '' : 's'})` : dias > -150 ? `<b>Ya se puede enviar</b> (sugerido: ${fmtDate(f.toISOString())})` : 'El refuerzo de esta jornada ya cerró';
+  return `<div class="jref">${ic('repeat')}<span>Refuerzo: ${cuando}${j.refuerzos ? ` · ${j.refuerzos} respuesta${j.refuerzos == 1 ? '' : 's'}` : ''}.</span>
+    <a class="btn sm green" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${ic('message')} WhatsApp</a>
+    <button class="btn sm ghost" data-copy="${esc(msg)}">${ic('clipboard')} Copiar mensaje</button></div>`;
+}
 function jornadaCard(j){
   const open = AC.open === j.id, abierta = j.estado === 'abierta';
-  const links = [['Diagnóstico inicial','diagnostico.html','target'],['Presentación','capacitacion.html','play'],['Desafío en vivo','vivo.html','zap'],['Evaluación','evaluacion.html','clipboard']];
+  const links = [['Diagnóstico inicial','diagnostico.html','target'],['Presentación','capacitacion.html','play'],['Desafío en vivo','vivo.html','zap'],['Evaluación','evaluacion.html','clipboard'],['Refuerzo','refuerzo.html','repeat']];
+  const QRS = { eval:['evaluacion.html','Evaluación','QR de la evaluación'], diag:['diagnostico.html','Diagnóstico','QR del diagnóstico inicial (mostrarlo al comenzar, antes de la presentación)'],
+                ref:['refuerzo.html','Refuerzo','QR del refuerzo (para enviar o mostrar ' + refuerzoDias() + ' días después)'] }, qk = QRS[AC.qr[j.id]] ? AC.qr[j.id] : 'eval';
   return `<article class="jcard ${abierta ? '' : 'closed'}">
     <div class="jhead">
       <div><h3>${esc(j.empresa)}</h3><p class="muted sm">${fmtDate(j.fecha + 'T12:00:00')}${j.lugar ? ' · ' + esc(j.lugar) : ''} · ${esc(j.capacitador)}</p></div>
@@ -180,6 +198,7 @@ function jornadaCard(j){
       <span><b>${j.participantes}</b> participantes</span><span><b>${j.aprobados}</b> aprobados</span>
       <span><b>${j.firmas}</b> firmas</span><span><b>${j.desafios}</b> desafío${j.desafios == 1 ? '' : 's'} en vivo</span>
       ${j.diagnosticos != null ? `<span><b>${j.diagnosticos}</b> diagnóstico${j.diagnosticos == 1 ? '' : 's'}</span>` : ''}
+      ${j.refuerzos != null ? `<span><b>${j.refuerzos}</b> refuerzo${j.refuerzos == 1 ? '' : 's'}</span>` : ''}
     </div>
     <div class="actions" style="margin-top:12px">
       <button class="btn sm ${open ? 'primary' : 'ghost'}" data-links="${j.id}">${ic('route')} Links y QR</button>
@@ -190,9 +209,10 @@ function jornadaCard(j){
       <button class="btn sm ghost" data-estado="${j.id}" data-nuevo="${abierta ? 'cerrada' : 'abierta'}">${ic(abierta ? 'lock' : 'refresh')} ${abierta ? 'Cerrar jornada' : 'Reabrir'}</button>
     </div>
     ${open ? `<div class="jlinks">
-      <div class="jlink-rows">${links.map(([t, pg, icn]) => { const u = linkFor(pg, j.codigo); return `<div class="jlink"><span>${ic(icn)} ${t}</span><code>${esc(u.replace(/^https?:\/\//, ''))}</code><button class="btn sm ghost" data-copy="${esc(u)}">${ic('clipboard')} Copiar</button><a class="btn sm ghost" href="${esc(u)}" target="_blank" rel="noopener">${ic('arrow')} Abrir</a></div>`; }).join('')}</div>
-      <div class="jqr">${(() => { const dg = AC.qr[j.id] === 'diag'; return `<div class="seg" role="group" aria-label="QR a mostrar" style="margin-bottom:8px"><button class="seg-btn" aria-pressed="${!dg}" data-qr="${j.id}" data-k="eval">Evaluación</button><button class="seg-btn" aria-pressed="${dg}" data-qr="${j.id}" data-k="diag">Diagnóstico</button></div>
-        <div class="qr-box">${qrSVG(linkFor(dg ? 'diagnostico.html' : 'evaluacion.html', j.codigo))}</div><p class="sm muted">${dg ? 'QR del diagnóstico inicial (mostrarlo al comenzar, antes de la presentación)' : 'QR de la evaluación'}</p>`; })()}</div>
+      <div class="jlink-rows">${links.map(([t, pg, icn]) => { const u = linkFor(pg, j.codigo); return `<div class="jlink"><span>${ic(icn)} ${t}</span><code>${esc(u.replace(/^https?:\/\//, ''))}</code><button class="btn sm ghost" data-copy="${esc(u)}">${ic('clipboard')} Copiar</button><a class="btn sm ghost" href="${esc(u)}" target="_blank" rel="noopener">${ic('arrow')} Abrir</a></div>`; }).join('')}
+        ${refuerzoAviso(j)}</div>
+      <div class="jqr"><div class="seg" role="group" aria-label="QR a mostrar" style="margin-bottom:8px">${Object.entries(QRS).map(([k, q]) => `<button class="seg-btn" aria-pressed="${k === qk}" data-qr="${j.id}" data-k="${k}">${q[1]}</button>`).join('')}</div>
+        <div class="qr-box">${qrSVG(linkFor(QRS[qk][0], j.codigo))}</div><p class="sm muted">${QRS[qk][2]}</p></div>
       ${abierta ? '' : `<div style="grid-column:1/-1">${fb('warn','Jornada cerrada','Los participantes ya no pueden sumarse a esta jornada. Reabrila si necesitás registrar más resultados.')}</div>`}
     </div>` : ''}
   </article>`;

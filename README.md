@@ -16,6 +16,10 @@ Prototipo web estático (HTML + CSS + JavaScript, sin compilación), listo para 
 | `informe.html` | Capacitador → empresa cliente | **Informe grupal** A4 de la jornada: resumen, distribución, aciertos por tema, temas a reforzar, mapa de riesgo por sector, antes y después, satisfacción, desafío en vivo, conclusión y planilla de asistencia con firmas. Con `?t=` es el **enlace para el cliente** (sin login, se puede desactivar). |
 | `documento.html` | Capacitador | Documentos A4: **certificado de aprobación** / **constancia de asistencia** (uno o todos los de una jornada), **informe individual** (uno o todos) e **informe por empresa**. |
 | `diagnostico.html` | Cada participante | **Diagnóstico inicial** anónimo (5 preguntas, antes de la charla), para medir el aprendizaje. |
+| `refuerzo.html` | Cada participante | **Refuerzo a 30 días**: 3 preguntas anónimas de repaso (otra versión de la pregunta), con la respuesta correcta y la explicación. Mide cuánto se retuvo. |
+| `guia.html` | Capacitador | **Guía del capacitador** (2 hojas A4): agenda de 90 minutos, checklist del día y qué hacer y decir en cada pantalla. |
+| `referencias.html` | Todos | Fuentes y material de consulta (ANSV, SRT, NHTSA, OMS y leyes). |
+| `privacidad.html` | Todos | Aviso de privacidad (Ley 25.326), enlazado desde el formulario de la evaluación. |
 | `control.html` | Capacitador (su celular) | **Control remoto**: pasa las pantallas de la presentación, pone la pantalla en pausa y maneja el desafío en vivo (comenzar, mostrar resultado, siguiente, QR de la evaluación). Ve la respuesta correcta y la explicación para comentar. |
 | `verificar.html` | Cualquiera | Verifica una constancia con su código (o escaneando el QR impreso). |
 
@@ -34,9 +38,14 @@ assets/admin-tablero.js · admin-empresas.js · tablero.css  ← Tablero y Empre
 assets/informe-lib.js · informe.js · documento.js · informe.css · documento.css  ← informes y certificados A4
 assets/xlsx-lite.js · reportes-excel.js  ← Excel con formato (generado en el navegador, sin librerías externas)
 assets/diagnostico.js  ← diagnóstico inicial
+assets/banco.js      ← banco de preguntas: versiones de cada tema (se sortea una por participante)
+assets/refuerzo.js   ← refuerzo a 30 días
+assets/guia.js · referencias.js · privacidad.js · info.css  ← guía del capacitador, referencias y aviso de privacidad
+sw.js · assets/offline.js · manifest.json  ← modo sin internet (presentación y videos)
 assets/videos.js · videos.css · videos/  ← videos con voz dentro de la presentación
 supabase/02_reportes.sql  ← actualización de la base para los reportes (ejecutar una vez)
 supabase/04_registro_individual.sql  ← firma en certificados de evaluaciones hechas sin código de jornada (ejecutar una vez)
+supabase/05_refuerzo_y_consentimiento.sql  ← refuerzo a 30 días y fecha de aceptación del aviso de privacidad (ejecutar una vez, después de la 02)
 apps-script/Code.gs  ← receptor de resultados para Google Sheets (opcional)
 vercel.json          ← URLs limpias y encabezados de seguridad
 ```
@@ -131,7 +140,7 @@ Mientras no se ejecute, el sistema funciona en **modo compatible**: tablero, map
 
 ## Videos con voz
 
-Videos animados (≈ 1 minuto, Full HD, con subtítulos) en las pantallas con mucho texto. En la pantalla aparece **▶ Video**; se abre a pantalla completa y se cierra al terminar, con **Esc** o con la ✕. Tecla **V**: abrir / pausar. Desde el **control remoto**: Reproducir, Pausar y Cerrar video.
+Videos animados (≈ 1 minuto, Full HD, voz masculina, sin subtítulos) en las pantallas con mucho texto. En la pantalla aparece **▶ Video**; se abre a pantalla completa y se cierra al terminar, con **Esc** o con la ✕. Tecla **V**: abrir / pausar. Desde el **control remoto**: Reproducir, Pausar y Cerrar video.
 
 | Pantalla | Video | Archivo |
 |---|---|---|
@@ -144,6 +153,30 @@ Videos animados (≈ 1 minuto, Full HD, con subtítulos) en las pantallas con mu
 
 Para sumar otro: copiar el `.mp4` y su portada `.jpg` en `videos/` y agregar una línea en `assets/videos.js` (`VIDEOS_PRES`).
 
+## Banco de preguntas
+
+Cada tema de la evaluación tiene 2 versiones (`assets/banco.js`). En cada intento se sortea una versión por tema y se mezcla el orden de las opciones, así dos compañeros no tienen la misma evaluación. Como siempre hay una pregunta por tema en la misma posición, los informes por tema siguen comparando lo mismo. Para sumar una versión, agregarla en el tema correspondiente de `VARIANTES`. Los resultados guardados con el formato anterior se siguen leyendo bien.
+
+## Refuerzo a 30 días
+
+**Activación (una sola vez):** ejecutar `supabase/05_refuerzo_y_consentimiento.sql` en el *SQL Editor* (después de la 02). Agrega el tipo «refuerzo» a los diagnósticos anónimos y la fecha de aceptación del aviso de privacidad. Sin ejecutarla, el refuerzo funciona como repaso pero no guarda respuestas.
+
+- **Enviar:** *Jornadas → Links y QR* muestra la fecha sugerida (fecha de la jornada + `reportes.refuerzoDias`), el botón **WhatsApp** con el mensaje armado y **Copiar mensaje**. También hay un QR del refuerzo.
+- **Preguntas:** `reportes.refuerzo` (por defecto los temas 3, 9 y 10), en la versión 2 del banco. Anónimo: no pide nombre ni legajo. Se puede responder hasta 180 días después de la jornada, aunque esté cerrada.
+- **Resultados:** *Tablero → Retención a 30 días* (y el indicador *Retención*) y el informe grupal de la jornada comparan la evaluación final con el refuerzo, tema por tema.
+
+## Modo sin internet
+
+En la presentación, el botón con la flecha hacia abajo (**Usar sin internet**) descarga la presentación y los 6 videos (≈ 16 MB) en ese navegador. Hacerlo el día anterior o al llegar, con buena señal y desde el mismo navegador que se va a usar. Si se corta la conexión, recargar la página: sigue funcionando. Sin internet no funcionan el desafío en vivo, el control remoto ni el envío de resultados.
+
+Funciona con `sw.js` (service worker): páginas y scripts se piden primero a la red, así siempre se ve la última versión publicada; la copia guardada se usa solo si no hay conexión o la red tarda más de 4 segundos. Si se publica un cambio grande, subir `VERSION` en `sw.js`.
+
+## Guía, referencias y privacidad
+
+- **Guía del capacitador:** *Administración → Guía del capacitador* (o `guia.html`). Se imprime en 2 hojas. Los tiempos se editan en `assets/guia.js`.
+- **Referencias:** enlazadas desde el inicio y desde la última pantalla de la presentación.
+- **Aviso de privacidad:** el participante debe aceptarlo para registrar la evaluación; se guarda la fecha y hora (con la migración 05). **Completar** `privacidad.domicilio` y `privacidad.contacto` en `config.js`: mientras estén vacíos, el aviso los muestra en rojo.
+
 ## Alternativa: planilla de Google Sheets
 
 Además del registro central, cada resultado puede enviarse a una planilla de Google (opcional): pegar `apps-script/Code.gs` en *Extensiones → Apps Script* de la planilla, implementarlo como *Aplicación web* (ejecutar como: Yo; acceso: cualquier usuario) y copiar la URL `/exec` en `assets/config.js` → `integracion.endpoint`. Si se vacía `supabase.url`, el sitio vuelve al modo local sin servidor.
@@ -151,6 +184,6 @@ Además del registro central, cada resultado puede enviarse a una planilla de Go
 ## Antes de usarlo con trabajadores reales
 
 - El acceso de administración usa usuarios de Supabase (la clave `admin.password` de `config.js` solo se usa en modo local, sin servidor).
-- Nombre, apellido, legajo y firma son datos personales (Ley 25.326 de Protección de Datos Personales): informar a la empresa cliente y a los participantes para qué se usan y quién accede. El formulario ya muestra un aviso.
+- Nombre, apellido, legajo y firma son datos personales (Ley 25.326 de Protección de Datos Personales): informar a la empresa cliente y a los participantes para qué se usan y quién accede. El formulario pide aceptar el aviso de privacidad (`privacidad.html`); completar domicilio y contacto en `config.js`.
 - La evaluación se corrige en el navegador para dar la explicación inmediata; el servidor valida la consistencia del resultado.
 - La capacitación no incluye límites legales de horas de conducción; remite a la política interna y a la normativa vigente aplicable.

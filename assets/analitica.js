@@ -4,7 +4,7 @@
    el informe individual y los certificados. Solo calcula: no dibuja ni guarda nada.
    RS Consultora · Fatiga y Conducción Segura */
 
-const REP = Object.assign({ vigenciaMeses:12, avisoVencimientoDias:60, diagnostico:[1, 2, 4, 8, 9] }, CONFIG.reportes || {});
+const REP = Object.assign({ vigenciaMeses:12, avisoVencimientoDias:60, diagnostico:[1, 2, 4, 8, 9], refuerzo:[2, 8, 9], refuerzoDias:30 }, CONFIG.reportes || {});
 
 // Tema de cada pregunta de la evaluación (mismo orden que CONTENT.quiz)
 const TEMAS = ['Definición de fatiga','Señales de alerta','Microsueño','Factores de riesgo','Sueño y conducción','Vehículos livianos','Vehículos pesados','Prevención antes del viaje','Mito: café y descanso','Qué hacer ante la fatiga'];
@@ -30,7 +30,7 @@ const An = {
   /** % de acierto por pregunta (último intento). */
   porPregunta(regs){
     const cr = this.conResp(regs);
-    return CONTENT.quiz.map((q, k) => { const ok = cr.filter(r => r.respuestas[k] === q.c).length; return { k, q, n:cr.length, ok, pct:this.pct(ok, cr.length) }; });
+    return CONTENT.quiz.map((q, k) => { const ok = cr.filter(r => respOk(r.respuestas[k], k)).length; return { k, q, n:cr.length, ok, pct:this.pct(ok, cr.length) }; });
   },
 
   /** Mapa de riesgo: % de acierto por tema para cada grupo (sector o tipo de vehículo). */
@@ -39,7 +39,7 @@ const An = {
     const cr = this.conResp(regs), groups = new Map();
     cr.forEach(r => { const g = String(r[dim] || '').trim() || 'No indicado'; if(!groups.has(g)) groups.set(g, []); groups.get(g).push(r); });
     const rows = [...groups.entries()].filter(([, rs]) => rs.length >= minN).map(([g, rs]) => ({
-      grupo:g, n:rs.length, cells: CONTENT.quiz.map((q, k) => this.pct(rs.filter(r => r.respuestas[k] === q.c).length, rs.length)),
+      grupo:g, n:rs.length, cells: CONTENT.quiz.map((q, k) => this.pct(rs.filter(r => respOk(r.respuestas[k], k)).length, rs.length)),
       prom: Math.round(this.avg(rs.map(r => r.porcentaje))) }));
     rows.sort((a, b) => a.prom - b.prom || b.n - a.n);
     return rows;
@@ -61,7 +61,22 @@ const An = {
       const q = CONTENT.quiz[k], pre = D.filter(d => d[k] != null), post = cr;
       return { k, q, preN:pre.length, postN:post.length,
         pre: this.pct(pre.filter(d => +d[k] === q.c).length, pre.length),
-        post: this.pct(post.filter(r => r.respuestas[k] === q.c).length, post.length) };
+        post: this.pct(post.filter(r => respOk(r.respuestas[k], k)).length, post.length) };
+    });
+    const ok = items.filter(x => x.pre != null && x.post != null);
+    return { n:D.length, items, pre: ok.length ? Math.round(this.avg(ok.map(x => x.pre))) : null, post: ok.length ? Math.round(this.avg(ok.map(x => x.post))) : null };
+  },
+
+  /** Retención: evaluación final vs. refuerzo anónimo (días después), por tema. El refuerzo usa la versión 1
+      del banco de preguntas; se guarda { tema: opción elegida }. Misma forma que antesDespues (pre = evaluación, post = refuerzo). */
+  retencion(refs, regs){
+    const ks = (REP.refuerzo || []).filter(k => CONTENT.quiz[k]), cr = this.conResp(regs);
+    const D = (refs || []).map(d => d && d.respuestas ? d.respuestas : d).filter(d => d && typeof d === 'object');
+    const items = ks.map(k => {
+      const q = typeof preguntaDe === 'function' ? preguntaDe(k, 1) : CONTENT.quiz[k], ref = D.filter(d => d[k] != null);
+      return { k, q, preN:cr.length, postN:ref.length,
+        pre: this.pct(cr.filter(r => respOk(r.respuestas[k], k)).length, cr.length),
+        post: this.pct(ref.filter(d => +d[k] === q.c).length, ref.length) };
     });
     const ok = items.filter(x => x.pre != null && x.post != null);
     return { n:D.length, items, pre: ok.length ? Math.round(this.avg(ok.map(x => x.pre))) : null, post: ok.length ? Math.round(this.avg(ok.map(x => x.post))) : null };

@@ -65,7 +65,7 @@ function renderCerts(regs, j){
    ===================================================================== */
 function individualHTML(r, j, grupo, historial){
   const Q = CONTENT.quiz, tiene = Array.isArray(r.respuestas) && r.respuestas.length === Q.length;
-  const fallados = tiene ? Q.map((q, k) => r.respuestas[k] === q.c ? -1 : k).filter(k => k >= 0) : [];
+  const fallados = tiene ? Q.map((q, k) => respOk(r.respuestas[k], k) ? -1 : k).filter(k => k >= 0) : [];
   const G = An.resumen(grupo), vig = r.estado === 'APROBADO' ? An.estadoVigencia(j ? j.fecha : r.fecha) : null;
   const st = r.estado === 'APROBADO' ? 'ok' : r.estado === 'NO APROBADO' ? 'bad' : 'pend';
   return `<section class="sheet ind">
@@ -88,7 +88,7 @@ function individualHTML(r, j, grupo, historial){
       </div>
     </div>
     <h2 class="r-h2">Resultado por tema</h2>
-    ${tiene ? `<ul class="i-grid">${Q.map((q, k) => { const ok = r.respuestas[k] === q.c; return `<li class="${ok ? 'ok' : 'x'}"><b>${ok ? '✓' : '✗'}</b>${esc(tema(k))}<span>${ok ? 'Correcta' : 'Incorrecta'}</span></li>`; }).join('')}</ul>
+    ${tiene ? `<ul class="i-grid">${Q.map((q, k) => { const ok = respOk(r.respuestas[k], k); return `<li class="${ok ? 'ok' : 'x'}"><b>${ok ? '✓' : '✗'}</b>${esc(tema(k))}<span>${ok ? 'Correcta' : 'Incorrecta'}</span></li>`; }).join('')}</ul>
       ${fallados.length ? `<h3 class="r-h3">Para reforzar</h3><ul class="i-ref">${fallados.map(k => `<li><b>${esc(tema(k))}:</b> ${esc(Q[k].e)}</li>`).join('')}</ul>` : ''}` : '<p class="r-empty">No hay respuestas registradas para el detalle por tema.</p>'}
     <h2 class="r-h2">Recomendación</h2>
     <p class="r-conc">${esc(An.recomendacion(r, fallados))}</p>

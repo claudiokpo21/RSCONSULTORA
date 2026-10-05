@@ -402,6 +402,7 @@ const SLIDES = [
     <div class="signature">${instructorCard(CONFIG.consultora.nombre + ' · Capacitación dictada por')}</div>
     ${refs.length ? `<div class="panel refs"><p class="eyebrow">Documentos internos de referencia</p>${refs.map(d => `<p>${ic('clipboard')} ${d.enlace ? `<a href="${esc(d.enlace)}" target="_blank" rel="noopener" style="color:var(--amber)">${esc(d.titulo)}</a>` : esc(d.titulo)}</p>`).join('')}</div>` : ''}
     <div class="actions" style="justify-content:center;margin-top:30px"><a class="btn primary lg" href="vivo.html">${ic('zap')} DESAFÍO EN VIVO</a><button class="btn ghost lg" id="toEval">${ic('clipboard')} CONTINUAR A LA EVALUACIÓN</button></div>
+    <p class="sm dim" style="text-align:center;margin-top:14px"><a href="referencias.html" target="_blank" rel="noopener" style="color:var(--muted)">Referencias y material de consulta</a></p>
   </div>`; },
   init(r){ $('#toEval', r).onclick = () => go(LAST); } },
 
