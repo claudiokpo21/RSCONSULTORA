@@ -1,7 +1,7 @@
 # Fatiga y Conducción Segura — RS Consultora
 
 Capacitación de Higiene y Seguridad dictada por el **Lic. Roberto Seguin**.
-Prototipo web estático (HTML + CSS + JavaScript, sin compilación), listo para publicar en Vercel.
+Plataforma web estática (HTML + CSS + JavaScript, sin compilación), publicada en Vercel.
 
 ## Qué incluye
 
@@ -46,6 +46,7 @@ assets/videos.js · videos.css · videos/  ← videos con voz dentro de la prese
 supabase/02_reportes.sql  ← actualización de la base para los reportes (ejecutar una vez)
 supabase/04_registro_individual.sql  ← firma en certificados de evaluaciones hechas sin código de jornada (ejecutar una vez)
 supabase/05_refuerzo_y_consentimiento.sql  ← refuerzo a 30 días y fecha de aceptación del aviso de privacidad (ejecutar una vez, después de la 02)
+supabase/06_dni.sql  ← DNI obligatorio y legajo opcional en registros y nómina (ejecutar una vez, después de la 05)
 apps-script/Code.gs  ← receptor de resultados para Google Sheets (opcional)
 vercel.json          ← URLs limpias y encabezados de seguridad
 ```
@@ -132,7 +133,7 @@ Mientras no se ejecute, el sistema funciona en **modo compatible**: tablero, map
 - **Una hoja:** la constancia del trabajador y los certificados entran en una hoja A4 o Carta aunque el navegador agregue sus márgenes. Si el trabajador imprime con el menú del navegador (en vez del botón), igual sale la constancia.
 - **Vigencia:** `config.js → reportes.vigenciaMeses` (12 por defecto; 0 = sin vencimiento) y `avisoVencimientoDias` (60). Es un criterio de RS Consultora, **no un plazo legal**.
 - **Informe por empresa:** todas sus jornadas, evolución, resultados por sector y vehículo, mapa de riesgo, satisfacción, cobertura de nómina, vencidos, por vencer y pendientes.
-- **Nómina:** *Empresas → Nómina* → pegar o elegir un CSV con columnas `legajo;apellido;nombre;sector`. Se usa solo para calcular cobertura y pendientes.
+- **Nómina:** *Empresas → Nómina* → pegar o elegir un CSV con columnas `dni;legajo;apellido;nombre;sector` (alcanza con el DNI o el legajo; también se acepta el formato anterior `legajo;apellido;nombre;sector`). Se usa solo para calcular cobertura y pendientes.
 - **Diagnóstico inicial (antes / después):** QR en *Jornadas → Links y QR*. Anónimo, sin nombre ni legajo; las preguntas se eligen en `reportes.diagnostico`. Se compara con la evaluación final de la misma jornada.
 - **Satisfacción:** al finalizar la evaluación, calificación de 1 a 5 y comentario opcional. En los informes se muestran sin nombre.
 - **Compartir con el cliente:** *Jornadas → Compartir con el cliente* crea un enlace secreto al informe grupal y arma el email (se abre en tu correo). **Quien tenga el enlace ve el informe, incluida la planilla con nombres y firmas.** Se puede desactivar en cualquier momento. El envío automático sin abrir el correo requiere un proveedor de email (por ejemplo, SMTP propio o Resend).
@@ -152,6 +153,12 @@ Videos animados (≈ 1 minuto, Full HD, voz masculina, sin subtítulos) en las p
 | 17 · Prevención | Prevenir la fatiga | `videos/v5-prevencion.mp4` |
 
 Para sumar otro: copiar el `.mp4` y su portada `.jpg` en `videos/` y agregar una línea en `assets/videos.js` (`VIDEOS_PRES`).
+
+## DNI y legajo
+
+El participante se identifica con su **DNI** (obligatorio, 7 u 8 números); el **legajo** es opcional y sirve para cruzar con la nómina de la empresa. El DNI aparece en la constancia, los certificados, los informes y el Excel. En la verificación pública (QR) se muestra parcialmente oculto: `**.***.456`.
+
+**Activación (una sola vez):** ejecutar `supabase/06_dni.sql` en el *SQL Editor*. Los registros anteriores, que solo tienen legajo, siguen funcionando igual. Si el sitio nuevo se publica antes de ejecutar la 06, el DNI se guarda provisoriamente en el campo legajo (`DNI30123456`) y la migración lo pasa a su lugar.
 
 ## Banco de preguntas
 

@@ -1,0 +1,86 @@
+/* remote.css — Control remoto desde el celular · RS Consultora */
+
+/* ---------- Pantalla proyectada ---------- */
+.rc-btn{position:relative}
+.rc-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:transparent}
+.rc-btn.on{border-color:rgba(47,179,109,.6)}
+.rc-btn.on .rc-dot{background:var(--green);box-shadow:0 0 0 3px rgba(47,179,109,.25)}
+.rc-dlg{max-width:420px;position:relative}
+.rc-close{position:absolute;top:14px;right:14px;width:36px;height:36px}
+.rc-qr{text-align:center;margin:18px 0 10px}
+.rc-qr .qr-box{width:min(260px,70vw)}
+.rc-note{display:flex;gap:8px;align-items:flex-start;margin-top:12px;line-height:1.45}
+.rc-note .ic{margin-top:2px}
+.rc-state{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);font-weight:600;margin:6px 0 14px}
+.rc-state.ok{border-color:rgba(47,179,109,.5);background:var(--green-soft)}
+.rc-state .conn{width:10px;height:10px;border-radius:50%;background:var(--amber);flex:none}
+.rc-state .conn.ok{background:var(--green)}
+.rc-toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-140%);z-index:60;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;background:var(--panel);border:1px solid rgba(47,179,109,.55);box-shadow:0 18px 50px rgba(0,0,0,.5);font-weight:600;transition:transform .35s ease}
+.rc-toast.show{transform:translate(-50%,0)}
+.rc-toast .ic{color:var(--green)}
+.rc-blank{position:fixed;inset:0;z-index:70;background:#07090b;display:grid;place-items:center;text-align:center;opacity:0;pointer-events:none;transition:opacity .35s ease;cursor:pointer}
+.rc-blank.show{opacity:1;pointer-events:auto}
+.rc-blank .brand-mark{width:84px;height:84px;border-radius:20px;margin:0 auto;font-size:2.3rem}
+.rc-blank .brand-logo{height:84px;max-width:260px}
+.rc-bn{margin-top:18px;font-size:1.6rem;font-weight:800;letter-spacing:.06em}
+.rc-bs{color:var(--muted);text-transform:uppercase;letter-spacing:.25em;font-size:.85rem;margin-top:6px}
+.rc-blank .callout{margin-top:40px;justify-content:center}
+@media (prefers-reduced-motion: reduce){ .rc-toast,.rc-blank{transition:none} }
+
+/* ---------- Celular del capacitador (control.html) ---------- */
+body.rc-app{min-height:100dvh}
+.rc-page{max-width:520px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+.rc-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(15,18,22,.92);position:sticky;top:0;z-index:5}
+.rc-top .brand small{display:block;color:var(--muted);font-size:.74rem}
+.rc-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;font-size:.78rem;font-weight:700;border:1px solid var(--line);background:var(--panel2);white-space:nowrap}
+.rc-pill i{width:8px;height:8px;border-radius:50%;background:var(--amber)}
+.rc-pill.ok i{background:var(--green)} .rc-pill.bad i{background:var(--red)}
+.rc-main{flex:1;padding:16px 16px 12px;display:flex;flex-direction:column;gap:14px}
+.rc-card{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:16px}
+.rc-eyebrow{color:var(--amber);font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+.rc-title{font-size:1.3rem;font-weight:800;margin-top:6px;line-height:1.25}
+.rc-lead{color:var(--muted);font-size:.92rem;margin-top:8px}
+.rc-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;color:var(--muted);font-size:.85rem}
+.rc-meta b{color:var(--text)}
+.rc-next{font-size:.88rem;color:var(--muted);display:flex;align-items:center;gap:8px}
+.rc-next b{color:var(--text);font-weight:600}
+.rc-bar{height:6px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-top:10px}
+.rc-bar i{display:block;height:100%;background:var(--amber);border-radius:99px;transition:width .3s ease}
+.rc-dock{position:sticky;bottom:0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,transparent);display:flex;flex-direction:column;gap:10px}
+.rc-row{display:flex;flex-wrap:wrap;gap:10px}
+.rc-row>*{flex:1 1 0;min-width:0}
+.rc-row>.rc-small{flex:1 1 auto;min-width:28%}
+.rc-big{min-height:74px;font-size:1.15rem;font-weight:800;border-radius:16px}
+.rc-big.back{flex:0 0 34%}
+.rc-small{min-height:48px;font-size:.86rem;padding:10px 8px;white-space:nowrap}
+.rc-small.on{border-color:var(--amber);background:var(--amber-soft);color:var(--amber)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.rc-list{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow:auto;margin-top:6px}
+.rc-list button{display:flex;gap:12px;align-items:center;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;min-height:44px}
+.rc-list button.cur{border-color:var(--amber);background:var(--amber-soft)}
+.rc-list span{color:var(--dim);font-variant-numeric:tabular-nums;width:1.8em;text-align:right;flex:none}
+.rc-count{font-size:3.2rem;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.rc-count.low{color:var(--red)}
+.rc-opts{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.rc-opt{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-size:.92rem}
+.rc-opt .sw{width:14px;height:14px;border-radius:4px;flex:none}
+.rc-opt.ok{border-color:rgba(47,179,109,.6);background:var(--green-soft)}
+.rc-opt.ok::after{content:'✓';margin-left:auto;color:var(--green);font-weight:900}
+.rc-private{display:flex;gap:6px;align-items:center;color:var(--dim);font-size:.76rem;margin-top:10px}
+.rc-teams{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.rc-teams div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--panel2)}
+.rc-teams b{display:block;font-size:1.5rem}
+.rc-teams small{color:var(--muted)}
+.rc-top3{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.rc-top3 li{display:flex;justify-content:space-between;gap:12px;padding:8px 12px;border-radius:10px;background:var(--panel2)}
+.rc-empty{text-align:center;padding:28px 18px}
+.rc-empty .ic{width:46px;height:46px;color:var(--amber)}
+.rc-empty h1{font-size:1.35rem;margin:14px 0 8px}
+.rc-empty ol{text-align:left;color:var(--muted);margin:16px 0 0;padding-left:1.3em;line-height:1.7}
+.rc-sheet{position:fixed;inset:0;z-index:20;background:rgba(5,7,9,.75);display:flex;align-items:flex-end}
+.rc-sheet>div{width:100%;max-width:520px;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.rc-sheet h2{font-size:1.1rem;display:flex;justify-content:space-between;align-items:center}
+.rc-top3 li b{white-space:nowrap;flex:none}
+.rc-video{border-color:rgba(245,179,1,.45)}
+.rc-vt{font-weight:800;font-size:1.05rem;margin-top:4px}
+.of-bar{margin-top:12px}
