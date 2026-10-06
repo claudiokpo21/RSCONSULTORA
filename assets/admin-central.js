@@ -174,7 +174,7 @@ function refuerzoDias(){ return (CONFIG.reportes && CONFIG.reportes.refuerzoDias
 function refuerzoFecha(j){ const d = new Date(j.fecha + 'T12:00:00'); d.setDate(d.getDate() + refuerzoDias()); return d; }
 function refuerzoMensaje(j){
   return `Hola. Hace unas semanas participaste de la capacitación «${CONFIG.capacitacion.nombre}»${j.empresa ? ' en ' + j.empresa : ''}. `
-    + `Te propongo un repaso de 1 minuto: ${(CONFIG.reportes && CONFIG.reportes.refuerzo || [2, 8, 9]).length} preguntas, anónimo (no pide nombre ni legajo). `
+    + `Te propongo un repaso de 1 minuto: ${(CONFIG.reportes && CONFIG.reportes.refuerzo || [2, 8, 9]).length} preguntas, anónimo (no pide nombre ni DNI). `
     + `${linkFor('refuerzo.html', j.codigo)}\n${CONFIG.consultora.nombre} · Detenerse a tiempo también es seguridad.`;
 }
 function refuerzoAviso(j){
@@ -245,7 +245,7 @@ function acRows(){
   return AC.registros.filter(r => {
     const d = isoLocal(r.fecha_inicio || r.created_at);
     return (!F.jornada || (F.jornada === '__none' ? !r.jornada_id : r.jornada_id === F.jornada))
-      && (!q || [r.legajo, r.nombre, r.apellido, r.empresa, r.sector].some(x => String(x || '').toLowerCase().includes(q)))
+      && (!q || [r.dni, fmtDni(r.dni), r.legajo, r.nombre, r.apellido, r.empresa, r.sector].some(x => String(x || '').toLowerCase().includes(q)))
       && (!F.estado || r.estado === F.estado) && (!F.tipo || r.tipo_vehiculo === F.tipo)
       && (!F.desde || d >= F.desde) && (!F.hasta || d <= F.hasta);
   });
@@ -269,7 +269,7 @@ function resultadosHTML(){
     <div class="panel" style="margin-bottom:12px">
       <div class="filters">
         ${sel('fJ','Jornada',[...AC.jornadas.map(j => [j.id, `${j.codigo} · ${j.empresa}`]), ['__none','Sin jornada']], F.jornada)}
-        <div><label for="fQ">Buscar</label><input id="fQ" value="${esc(F.q)}" placeholder="Legajo, nombre, empresa…"></div>
+        <div><label for="fQ">Buscar</label><input id="fQ" value="${esc(F.q)}" placeholder="DNI, legajo, nombre, empresa…"></div>
         ${sel('fE','Estado',[['APROBADO','Aprobado'],['NO APROBADO','No aprobado'],['SIN COMPLETAR','Sin completar']], F.estado)}
         ${sel('fT','Tipo de vehículo',TIPOS.map(t => [t, t]), F.tipo)}
         <div><label for="fD">Desde</label><input id="fD" type="date" value="${esc(F.desde)}"></div>
@@ -277,9 +277,9 @@ function resultadosHTML(){
       </div>
       <div class="actions" style="margin-top:4px"><button class="btn ghost sm" id="fClear">${ic('refresh')} Limpiar filtros</button><button class="btn ghost sm" id="fCsv">${ic('download')} CSV</button><button class="btn primary sm" id="fXlsx">${ic('download')} EXCEL</button></div>
     </div>
-    <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Jornada</th><th>Legajo</th><th>Apellido y nombre</th><th>Empresa</th><th>Sector</th><th>Vehículo</th><th>%</th><th>Int.</th><th>Estado</th><th>Firma</th><th>Verificación</th><th></th></tr></thead>
+    <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Jornada</th><th>DNI</th><th>Legajo</th><th>Apellido y nombre</th><th>Empresa</th><th>Sector</th><th>Vehículo</th><th>%</th><th>Int.</th><th>Estado</th><th>Firma</th><th>Verificación</th><th></th></tr></thead>
       <tbody>${rows.length ? rows.map(r => `<tr>
-        <td>${fmtDate(r.fecha_inicio || r.created_at)}</td><td>${esc(r.jornada_codigo || '–')}</td><td>${esc(r.legajo)}</td>
+        <td>${fmtDate(r.fecha_inicio || r.created_at)}</td><td>${esc(r.jornada_codigo || '–')}</td><td>${esc(fmtDni(r.dni) || '–')}</td><td>${esc(r.legajo || '–')}</td>
         <td>${esc(r.apellido)}, ${esc(r.nombre)}</td><td>${esc(r.empresa || '–')}</td><td>${esc(r.sector || '–')}</td><td>${esc(r.tipo_vehiculo || '–')}</td>
         <td>${r.porcentaje != null ? r.porcentaje + '%' : '–'}</td><td>${r.intentos || 0}</td><td><span class="st ${stCls(r.estado)}">${esc(r.estado)}</span></td>
         <td>${r.firmado ? `<span style="color:#5fd699">${ic('check')}</span>` : '<span class="dim">–</span>'}</td>
@@ -287,7 +287,7 @@ function resultadosHTML(){
         <td class="row-acts"><a class="icon-btn" href="${docUrl('ind', r)}" target="_blank" rel="noopener" title="Informe individual" aria-label="Informe individual de ${esc(r.apellido)}">${ic('user')}</a>
           ${r.estado !== 'SIN COMPLETAR' || r.firmado ? `<a class="icon-btn" href="${docUrl('cert', r)}" target="_blank" rel="noopener" title="${r.estado === 'APROBADO' ? 'Certificado de aprobación' : 'Constancia de asistencia'}" aria-label="Certificado de ${esc(r.apellido)}">${ic('award')}</a>` : ''}
           <button class="icon-btn" data-del="${esc(r.id)}" title="Eliminar registro" aria-label="Eliminar registro de ${esc(r.apellido)}">${ic('trash')}</button></td>
-      </tr>`).join('') : `<tr><td colspan="13" class="muted" style="text-align:center;padding:26px">No hay registros${AC.registros.length ? ' que coincidan con los filtros' : ''}.</td></tr>`}</tbody></table></div>`;
+      </tr>`).join('') : `<tr><td colspan="14" class="muted" style="text-align:center;padding:26px">No hay registros${AC.registros.length ? ' que coincidan con los filtros' : ''}.</td></tr>`}</tbody></table></div>`;
 }
 function bindResultados(){
   const map = { fJ:'jornada', fQ:'q', fE:'estado', fT:'tipo', fD:'desde', fH:'hasta' };
@@ -306,14 +306,14 @@ function bindResultados(){
     XLSX.download(`resultados_fatiga_${isoLocal(new Date())}.xlsx`, sheets.filter(s => ['Participantes','Temas','Riesgo por sector','Riesgo por vehículo','Vencimientos'].includes(s.name))); };
   $$('[data-del]', acEl).forEach(b => b.onclick = async () => {
     const r = AC.registros.find(x => x.id === b.dataset.del);
-    if(!(await confirmDialog('Eliminar registro', `Se eliminará el registro de ${esc(r.apellido)}, ${esc(r.nombre)} (legajo ${esc(r.legajo)}). Su constancia dejará de poder verificarse. Esta acción no se puede deshacer.`, 'Eliminar', 'Cancelar', true))) return;
+    if(!(await confirmDialog('Eliminar registro', `Se eliminará el registro de ${esc(r.apellido)}, ${esc(r.nombre)} (${esc(idPersona(r))}). Su constancia dejará de poder verificarse. Esta acción no se puede deshacer.`, 'Eliminar', 'Cancelar', true))) return;
     try{ await Central.rpc('rs_admin_eliminar_registro', { p_id:r.id }); await acReload(); }catch(err){ acError(err); }
   });
 }
 function acCsv(rows){
-  const cols = [['fecha','Fecha'],['jornada','Jornada'],['legajo','Legajo'],['nombre','Nombre'],['apellido','Apellido'],['empresa','Empresa'],['sector','Sector'],['tipo','Tipo de vehículo'],['inicio','Hora de inicio'],['fin','Hora de finalización'],['dur','Duración (min)'],['preg','Cantidad de preguntas'],['corr','Respuestas correctas'],['inc','Respuestas incorrectas'],['pct','Porcentaje'],['int','Intentos'],['estado','Estado'],['firma','Asistencia firmada'],['ver','Código de verificación'],['cap','Capacitador']];
+  const cols = [['fecha','Fecha'],['jornada','Jornada'],['dni','DNI'],['legajo','Legajo'],['nombre','Nombre'],['apellido','Apellido'],['empresa','Empresa'],['sector','Sector'],['tipo','Tipo de vehículo'],['inicio','Hora de inicio'],['fin','Hora de finalización'],['dur','Duración (min)'],['preg','Cantidad de preguntas'],['corr','Respuestas correctas'],['inc','Respuestas incorrectas'],['pct','Porcentaje'],['int','Intentos'],['estado','Estado'],['firma','Asistencia firmada'],['ver','Código de verificación'],['cap','Capacitador']];
   const cell = v => { let s = String(v ?? ''); if(/^[=+\-@]/.test(s)) s = "'" + s; return /[";\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
-  const data = rows.map(r => ({ fecha:fmtDate(r.fecha_inicio || r.created_at), jornada:r.jornada_codigo || '', legajo:r.legajo, nombre:r.nombre, apellido:r.apellido, empresa:r.empresa, sector:r.sector,
+  const data = rows.map(r => ({ fecha:fmtDate(r.fecha_inicio || r.created_at), jornada:r.jornada_codigo || '', dni:fmtDni(r.dni), legajo:r.legajo || '', nombre:r.nombre, apellido:r.apellido, empresa:r.empresa, sector:r.sector,
     tipo:r.tipo_vehiculo, inicio:r.fecha_inicio ? fmtTime(r.fecha_inicio) : '', fin:r.fecha_fin ? fmtTime(r.fecha_fin) : '', dur:r.duracion_min, preg:r.preguntas, corr:r.correctas, inc:r.incorrectas,
     pct:r.porcentaje, int:r.intentos, estado:r.estado, firma:r.firmado ? 'Sí' : 'No', ver:r.verificacion, cap:r.capacitador }));
   const csv = '﻿' + [cols.map(c => c[1]).join(';'), ...data.map(d => cols.map(c => cell(d[c[0]])).join(';'))].join('\r\n');

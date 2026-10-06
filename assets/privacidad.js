@@ -20,8 +20,8 @@ const contacto = PV.contacto ? `<a href="mailto:${esc(PV.contacto)}" style="colo
 
     <h2>Qué datos recolectamos</h2>
     <ul>
-      <li><b>Evaluación final:</b> legajo, nombre, apellido, empresa, sector, tipo de vehículo, firma de asistencia, respuestas, resultado, fecha y hora, y —si la completás— tu opinión sobre la capacitación.</li>
-      <li><b>Diagnóstico inicial y refuerzo:</b> son <b>anónimos</b>: no se pide nombre ni legajo; solo se guardan las respuestas, asociadas a la jornada.</li>
+      <li><b>Evaluación final:</b> DNI, legajo (si lo indicás), nombre, apellido, empresa, sector, tipo de vehículo, firma de asistencia, respuestas, resultado, fecha y hora, y —si la completás— tu opinión sobre la capacitación.</li>
+      <li><b>Diagnóstico inicial y refuerzo:</b> son <b>anónimos</b>: no se pide nombre, DNI ni legajo; solo se guardan las respuestas, asociadas a la jornada.</li>
       <li><b>Desafío en vivo:</b> el nombre que escribís se muestra en pantalla durante el juego. Al terminar, solo se guardan los totales anónimos y el nombre de los tres primeros puestos.</li>
     </ul>
 
@@ -37,7 +37,7 @@ const contacto = PV.contacto ? `<a href="mailto:${esc(PV.contacto)}" style="colo
     <p>${esc(PV.responsable)} y la empresa para la que se dicta la capacitación (por ejemplo, en el informe y la planilla de asistencia). No se venden ni se ceden a terceros con otros fines. Los datos se guardan en servidores de un proveedor de infraestructura en la nube contratado por ${esc(PV.responsable)}, con acceso restringido.</p>
 
     <h2>¿Es obligatorio?</h2>
-    <p>Legajo, nombre y apellido son necesarios para registrar la capacitación y emitir la constancia: sin ellos no es posible registrarla. Empresa, sector, tipo de vehículo y la opinión son opcionales.</p>
+    <p>DNI, nombre y apellido son necesarios para registrar la capacitación y emitir la constancia: sin ellos no es posible registrarla. Legajo, empresa, sector, tipo de vehículo y la opinión son opcionales. En la verificación pública de la constancia el DNI se muestra parcialmente oculto.</p>
 
     <h2>Por cuánto tiempo</h2>
     <p>Mientras sea necesario para acreditar la capacitación realizada, y como máximo ${PV.conservacionAnios} años, salvo que una norma exija conservarlos por más tiempo.</p>

@@ -56,15 +56,24 @@ function parseNomina(txt){
   if(!lines.length) return [];
   const sep = /\t/.test(lines[0]) ? '\t' : /;/.test(lines[0]) ? ';' : ',';
   const rows = lines.map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g, '')));
-  if(/legajo/i.test(rows[0][0] || '')) rows.shift();
-  return rows.map(c => ({ legajo:(c[0] || '').toUpperCase(), apellido:c[1] || '', nombre:c[2] || '', sector:c[3] || '' })).filter(r => /^[A-Z0-9-]{1,12}$/.test(r.legajo));
+  // Con encabezado (dni, legajo, apellido, nombre, sector, en cualquier orden) o sin él:
+  // 5 columnas = dni;legajo;apellido;nombre;sector · 4 columnas = legajo;apellido;nombre;sector (formato anterior).
+  const COLS = ['dni','legajo','apellido','nombre','sector'];
+  let orden = rows[0].length >= 5 ? COLS : ['legajo','apellido','nombre','sector'];
+  if(rows[0].some(c => /^(dni|documento|legajo|apellido|nombre|sector)$/i.test(c))){
+    orden = rows.shift().map(c => { c = c.toLowerCase(); return c === 'documento' ? 'dni' : c; });
+  }
+  return rows.map(c => { const o = {}; orden.forEach((k, i) => { if(COLS.includes(k)) o[k] = c[i] || ''; }); return o; })
+    .map(o => ({ dni:normDni(o.dni), legajo:String(o.legajo || '').toUpperCase(), apellido:o.apellido || '', nombre:o.nombre || '', sector:o.sector || '' }))
+    .map(r => ({ ...r, dni: dniValido(r.dni) ? r.dni : '', legajo: /^[A-Z0-9-]{1,12}$/.test(r.legajo) ? r.legajo : '' }))
+    .filter(r => r.dni || r.legajo);
 }
 function nominaDialog(e, msg){
   const d = $('#dlg'); d.classList.add('wide');
   d.innerHTML = `<h2>${ic('users')} Nómina · ${esc(e.nombre)}</h2>
-    <p class="muted sm">Pegá el listado desde Excel (columnas: <b>legajo, apellido, nombre, sector</b>) o elegí un archivo CSV. Se usa solo para calcular la cobertura y los pendientes; no se muestra a los participantes.</p>
+    <p class="muted sm">Pegá el listado desde Excel (columnas: <b>dni, legajo, apellido, nombre, sector</b>; alcanza con el DNI o el legajo) o elegí un archivo CSV. Se usa solo para calcular la cobertura y los pendientes; no se muestra a los participantes.</p>
     ${Datos.v2 === false ? fb('info','Requiere actualización de la base', Datos.avisoV2()) : ''}
-    <textarea class="nom-area" id="nomTxt" placeholder="legajo;apellido;nombre;sector&#10;1001;Pérez;Juan;Transporte&#10;1002;Gómez;Ana;Logística"></textarea>
+    <textarea class="nom-area" id="nomTxt" placeholder="dni;legajo;apellido;nombre;sector&#10;30123456;1001;Pérez;Juan;Transporte&#10;28987654;;Gómez;Ana;Logística"></textarea>
     <div class="actions" style="justify-content:space-between;align-items:center;margin-top:10px">
       <label class="btn ghost sm" style="cursor:pointer">${ic('download')} Elegir CSV<input type="file" id="nomFile" accept=".csv,.txt,text/csv" hidden></label>
       <label class="sm" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="nomRep" ${e.nominaN ? '' : 'checked'}> Reemplazar la nómina actual${e.nominaN ? ` (${e.nominaN})` : ''}</label>

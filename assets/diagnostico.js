@@ -1,6 +1,6 @@
 'use strict';
 /* diagnostico.js — DIAGNÓSTICO INICIAL ANÓNIMO (antes de la capacitación)
-   5 preguntas de la evaluación final (CONFIG.reportes.diagnostico). No pide nombre ni legajo
+   5 preguntas de la evaluación final (CONFIG.reportes.diagnostico). No pide nombre, DNI ni legajo
    y no muestra las respuestas correctas: se comparan al final con la evaluación, a nivel de grupo.
    RS Consultora · Fatiga y Conducción Segura */
 
@@ -20,7 +20,7 @@ function intro(){
       <p class="muted">${esc(CONFIG.capacitacion.nombre)}${D.jornada ? `<br>${esc(D.jornada.empresa)} · ${fmtDate(D.jornada.fecha + 'T12:00:00')}` : ''}</p></div></div>
     <ul class="diag-points">
       <li>${ic('clock')} <span><b>${KS.length} preguntas</b>, menos de 2 minutos.</span></li>
-      <li>${ic('lock')} <span><b>Es anónimo:</b> no pide tu nombre ni tu legajo. <a href="privacidad.html" target="_blank" rel="noopener" style="color:var(--amber)">Aviso de privacidad</a></span></li>
+      <li>${ic('lock')} <span><b>Es anónimo:</b> no pide tu nombre ni tu DNI. <a href="privacidad.html" target="_blank" rel="noopener" style="color:var(--amber)">Aviso de privacidad</a></span></li>
       <li>${ic('info')} <span><b>No es un examen.</b> Respondé lo que sabés hoy: sirve para medir cuánto aprende el grupo con la capacitación.</span></li>
     </ul>
     <div class="actions"><button class="btn primary lg" id="dGo">${ic('play')} COMENZAR</button></div>

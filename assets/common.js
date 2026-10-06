@@ -69,7 +69,7 @@ document.body.insertAdjacentHTML('afterbegin', `<svg width="0" height="0" style=
 function newState(){
   return {
     recordId: null, token: null, firma: null, verificacion: null, jornada: null,
-    participant: { legajo:'', nombre:'', apellido:'', empresa:'', sector:'', tipoVehiculo:'' },
+    participant: { dni:'', legajo:'', nombre:'', apellido:'', empresa:'', sector:'', tipoVehiculo:'' },
     training: { nombre: CONFIG.capacitacion.nombre, fechaInicio:null, fechaFin:null, duracion:null /* minutos */ },
     evaluation: { preguntas: CONTENT.quiz.length, correctas:0, incorrectas:0, porcentaje:0, intentos:0, estado:'SIN COMPLETAR' },
     quiz: { idx:0, answers:[], done:false },
@@ -85,7 +85,7 @@ function buildRecord(){
   const p = State.participant, t = State.training, e = State.evaluation;
   return {
     id: State.recordId,
-    participant: { legajo:p.legajo, nombre:p.nombre, apellido:p.apellido, empresa:p.empresa, sector:p.sector, tipoVehiculo:p.tipoVehiculo },
+    participant: { dni:p.dni || '', legajo:p.legajo, nombre:p.nombre, apellido:p.apellido, empresa:p.empresa, sector:p.sector, tipoVehiculo:p.tipoVehiculo },
     training: { nombre:t.nombre, capacitador:capacitador(), consultora:CONFIG.consultora.nombre, codigo:CONFIG.capacitacion.codigo, version:CONFIG.capacitacion.version, fechaInicio:t.fechaInicio, fechaFin:t.fechaFin, duracion:t.duracion },
     evaluation: { preguntas:e.preguntas, correctas:e.correctas, incorrectas:e.incorrectas, porcentaje:e.porcentaje, intentos:e.intentos, estado:e.estado, criterioAprobacion:CONFIG.aprobacion.porcentajeMinimo },
     meta: { finalizada: State.finalizada, almacenamiento:'local', actualizado: new Date().toISOString() }
@@ -117,8 +117,8 @@ const Store = {
 const SessionReg = {
   mem: [],
   list(){ try{ return JSON.parse(sessionStorage.getItem(CONFIG.almacenamiento.claveSesion) || '[]'); }catch(e){ return this.mem; } },
-  add(legajo){ const l = this.list(); l.push(legajo.toUpperCase()); try{ sessionStorage.setItem(CONFIG.almacenamiento.claveSesion, JSON.stringify(l)); }catch(e){ this.mem = l; } },
-  has(legajo){ return this.list().includes(legajo.toUpperCase()); }
+  add(legajo){ const l = this.list(); l.push(String(legajo).toUpperCase()); try{ sessionStorage.setItem(CONFIG.almacenamiento.claveSesion, JSON.stringify(l)); }catch(e){ this.mem = l; } },
+  has(legajo){ return this.list().includes(String(legajo).toUpperCase()); }
 };
 function persist(){ if(State.recordId) Store.upsert(buildRecord()); }
 
@@ -168,7 +168,7 @@ const ART_ROAD = `
 /* =====================================================================
    ENVÍO DE RESULTADOS (planilla central)
    Si CONFIG.integracion.endpoint tiene la URL de Google Apps Script, cada registro
-   se envía allí. Si está vacío, el prototipo trabaja solo con almacenamiento local.
+   se envía allí. Si está vacío, la plataforma trabaja solo con almacenamiento local.
    ===================================================================== */
 const Sync = {
   enabled(){ return !!(CONFIG.integracion.endpoint || typeof CONFIG.integracion.enviarResultado === 'function'); },
@@ -238,6 +238,19 @@ if('serviceWorker' in navigator && (location.protocol === 'https:' || /^(localho
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
 }
 
+/* ---------- Identificación: DNI (obligatorio) y legajo (opcional) ---------- */
+/** Solo los números del DNI ("30.123.456" → "30123456"). */
+function normDni(s){ return String(s == null ? '' : s).replace(/\D/g, ''); }
+function dniValido(d){ return /^\d{7,8}$/.test(normDni(d)); }
+/** "30123456" → "30.123.456" */
+function fmtDni(d){ d = normDni(d); return d ? d.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''; }
+/** Texto de identificación para mostrar: "DNI 30.123.456 · Legajo 1001" (lo que haya). */
+function idPersona(r){ return [r && r.dni ? 'DNI ' + fmtDni(r.dni) : '', r && r.legajo ? 'Legajo ' + r.legajo : ''].filter(Boolean).join(' · '); }
+/** Clave única de la persona para agrupar registros: el DNI si lo hay; si no, el legajo (registros anteriores). */
+function clavePersona(r){ return r && r.dni ? 'D' + normDni(r.dni) : 'L' + String((r && r.legajo) || '').toUpperCase(); }
+/** Identificación corta para tablas: el DNI (formateado) o, en registros anteriores, el legajo. */
+function idCorto(r){ return r && r.dni ? fmtDni(r.dni) : String((r && r.legajo) || ''); }
+
 const TIPOS = ['Vehículo liviano','Vehículo pesado','Ambos'];
 function brandMarkHTML(){ const logo = CONFIG.organizacion.logo; return logo ? `<img class="brand-logo" src="${esc(logo)}" alt="${esc(CONFIG.consultora.nombre)}">` : `<span class="brand-mark rs" aria-label="${esc(CONFIG.consultora.nombre)}">${esc(CONFIG.consultora.iniciales)}</span>`; }
 
@@ -259,10 +272,11 @@ function renderCertificate(){
       <div class="code">Código: ${esc(CONFIG.capacitacion.codigo)} · v${esc(CONFIG.capacitacion.version)}<br>${State.verificacion ? 'Verificación: <b>' + esc(State.verificacion) + '</b>' : 'Registro: ' + esc(State.recordId || '')}</div></div>
     <h1>CONSTANCIA DE CAPACITACIÓN</h1>
     <p class="sub">Capacitación de Higiene y Seguridad</p>
-    <p class="body">Se deja constancia de que <b>${esc(fullName())}</b>, legajo <b>${esc(p.legajo)}</b>,<br>completó y aprobó la capacitación<br><b>“${esc(CONFIG.capacitacion.nombre)}”</b>,<br>dictada por ${esc(capacitador())} – ${esc(CONFIG.consultora.nombre)}.</p>
+    <p class="body">Se deja constancia de que <b>${esc(fullName())}</b>, ${p.dni ? `<span style='white-space:nowrap'>DNI <b>${esc(fmtDni(p.dni))}</b></span>` : `legajo <b>${esc(p.legajo)}</b>`},<br>completó y aprobó la capacitación<br><b>“${esc(CONFIG.capacitacion.nombre)}”</b>,<br>dictada por ${esc(capacitador())} – ${esc(CONFIG.consultora.nombre)}.</p>
     <table>
       <tr><td>Nombre y apellido</td><td>${esc(fullName())}</td></tr>
-      <tr><td>Legajo</td><td>${esc(p.legajo)}</td></tr>
+      ${p.dni ? `<tr><td>DNI</td><td>${esc(fmtDni(p.dni))}</td></tr>` : ''}
+      ${p.legajo ? `<tr><td>Legajo</td><td>${esc(p.legajo)}</td></tr>` : ''}
       ${p.empresa ? `<tr><td>Empresa</td><td>${esc(p.empresa)}</td></tr>` : ''}
       ${p.sector ? `<tr><td>Sector / Área</td><td>${esc(p.sector)}</td></tr>` : ''}
       ${p.tipoVehiculo ? `<tr><td>Tipo de vehículo</td><td>${esc(p.tipoVehiculo)}</td></tr>` : ''}

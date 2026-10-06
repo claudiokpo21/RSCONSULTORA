@@ -17,11 +17,13 @@ function show(html, focusSel){
 function progress(p){ $('#progressFill').style.width = p + '%'; $('#progressBar').setAttribute('aria-valuenow', p); }
 function setWho(){
   const c = $('#whoChip'), p = State.participant;
-  if(State.recordId){ c.hidden = false; c.textContent = `${fullName()} | Legajo: ${p.legajo}`; } else { c.hidden = true; c.textContent = ''; }
+  if(State.recordId){ c.hidden = false; c.textContent = `${fullName()} | ${idPersona(p)}`; } else { c.hidden = true; c.textContent = ''; }
 }
 function centralPayload(){
   const p = State.participant, t = State.training, e = State.evaluation;
-  return { id:State.recordId, token:State.token, jornada:State.jornada, legajo:p.legajo, nombre:p.nombre, apellido:p.apellido,
+  return { id:State.recordId, token:State.token, jornada:State.jornada, dni:p.dni || null,
+    // Sin legajo se envía "DNI<número>": lo acepta también una base sin la migración 06 (que después lo convierte en DNI).
+    legajo:p.legajo || (p.dni ? 'DNI' + p.dni : ''), nombre:p.nombre, apellido:p.apellido,
     empresa:p.empresa, sector:p.sector, tipo_vehiculo:p.tipoVehiculo, capacitacion:CONFIG.capacitacion.nombre, capacitador:capacitador(),
     fecha_inicio:t.fechaInicio, fecha_fin:t.fechaFin, duracion_min:t.duracion, preguntas:e.preguntas, correctas:e.correctas,
     intentos:e.intentos, criterio:CONFIG.aprobacion.porcentajeMinimo, respuestas: State.quiz.done ? respuestasGuardadas() : null, firma:State.firma,
@@ -41,23 +43,23 @@ async function sendAll(){
 const sendNow = sendAll;
 
 /* ---------- 1. Identificación ---------- */
-function field(id, label, req, val, err, hint, ac){
+function field(id, label, req, val, err, hint, ac, im){
   return `<div class="field ${err ? 'err' : ''}"><label for="f-${id}">${label}${req ? ' <span class="req">*</span>' : ''}</label>
-    <input id="f-${id}" name="${id}" value="${esc(val || '')}" ${req ? 'required aria-required="true"' : ''} autocomplete="${ac || 'off'}" ${err ? `aria-invalid="true" aria-describedby="m-${id}"` : hint ? `aria-describedby="m-${id}"` : ''}>
+    <input id="f-${id}" name="${id}" value="${esc(val || '')}" ${req ? 'required aria-required="true"' : ''} autocomplete="${ac || 'off'}"${im ? ` inputmode="${im}"` : ''} ${err ? `aria-invalid="true" aria-describedby="m-${id}"` : hint ? `aria-describedby="m-${id}"` : ''}>
     ${err || hint ? `<p class="msg" id="m-${id}">${err || hint}</p>` : ''}</div>`;
 }
 function viewForm(v, errs){
   progress(4); setWho();
   const privacidad = (Sync.enabled() || Central.enabled())
-    ? `Tus datos (nombre, apellido, legajo${CONFIG.asistencia && CONFIG.asistencia.firmaObligatoria ? ' y firma' : ''}) se usan solo para registrar esta capacitación. Se envían al registro de <b>${esc(CONFIG.consultora.nombre)}</b>, al que accede únicamente el responsable de la capacitación.`
-    : `Tus datos (nombre, apellido y legajo) se usan solo para registrar esta capacitación. En este prototipo se guardan <b>únicamente en este dispositivo</b> y no se envían a ningún servidor.`;
+    ? `Tus datos (nombre, apellido, DNI, legajo${CONFIG.asistencia && CONFIG.asistencia.firmaObligatoria ? ' y firma' : ''}) se usan solo para registrar esta capacitación. Se envían al registro de <b>${esc(CONFIG.consultora.nombre)}</b>, al que accede únicamente el responsable de la capacitación.`
+    : `Tus datos (nombre, apellido, DNI y legajo) se usan solo para registrar esta capacitación. En este modo se guardan <b>únicamente en este dispositivo</b> y no se envían a ningún servidor.`;
   show(`<div class="gate-card">
     <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">${esc(CONFIG.consultora.nombre)} · Evaluación final</p><h1>IDENTIFICACIÓN DEL PARTICIPANTE</h1><p class="muted">Fatiga y conducción segura – Vehículos livianos y pesados<br>Dicta: ${esc(capacitador())}</p></div></div>
     ${jornadaBanner()}
     <form id="idForm" novalidate>
       <div class="form-grid">
-        ${field('legajo','LEGAJO',true,v.legajo,errs.legajo,CONFIG.legajo.descripcion)}
-        <div></div>
+        ${field('dni','DNI',true,v.dni ? fmtDni(v.dni) : v.dni,errs.dni,(CONFIG.dni && CONFIG.dni.descripcion) || '7 u 8 números, sin puntos.','','numeric')}
+        ${field('legajo','LEGAJO',false,v.legajo,errs.legajo,CONFIG.legajo.descripcion)}
         ${field('nombre','NOMBRE',true,v.nombre,errs.nombre,'','given-name')}
         ${field('apellido','APELLIDO',true,v.apellido,errs.apellido,'','family-name')}
         ${field('empresa','EMPRESA',false,v.empresa ?? (JORNADA ? JORNADA.empresa : CONFIG.organizacion.empresa),'','','organization')}
@@ -74,16 +76,17 @@ function viewForm(v, errs){
     </form>
   </div>`);
   $('#idForm').onsubmit = e => { e.preventDefault(); submitForm(new FormData(e.target)); };
-  const firstErr = $('.field.err input', view); (firstErr || $('#f-legajo')).focus({ preventScroll:true });
+  const firstErr = $('.field.err input', view); (firstErr || $('#f-dni')).focus({ preventScroll:true });
 }
 function submitForm(fd){
-  const v = {}; ['legajo','nombre','apellido','empresa','sector','tipoVehiculo'].forEach(k => v[k] = String(fd.get(k) || '').trim().replace(/\s+/g, ' '));
+  const v = {}; ['dni','legajo','nombre','apellido','empresa','sector','tipoVehiculo'].forEach(k => v[k] = String(fd.get(k) || '').trim().replace(/\s+/g, ' '));
   v.consent = fd.get('consent') === 'on';
-  v.legajo = v.legajo.toUpperCase();
+  v.legajo = v.legajo.toUpperCase(); v.dni = normDni(v.dni);
   const errs = {}, nameRe = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' .-]{2,60}$/;
-  if(!v.legajo) errs.legajo = 'El legajo es obligatorio.';
-  else if(!CONFIG.legajo.patron.test(v.legajo)) errs.legajo = 'Formato inválido. ' + CONFIG.legajo.descripcion;
-  else if(SessionReg.has(v.legajo)) errs.legajo = 'Este legajo ya fue registrado en esta sesión.';
+  if(!v.dni) errs.dni = 'El DNI es obligatorio.';
+  else if(!dniValido(v.dni)) errs.dni = 'Ingresá un DNI válido: 7 u 8 números.';
+  else if(SessionReg.has(clavePersona(v))) errs.dni = 'Este DNI ya fue registrado en esta sesión.';
+  if(v.legajo && !CONFIG.legajo.patron.test(v.legajo)) errs.legajo = 'Formato inválido. ' + CONFIG.legajo.descripcion;
   if(!v.nombre) errs.nombre = 'El nombre es obligatorio.'; else if(!nameRe.test(v.nombre)) errs.nombre = 'Ingresá un nombre válido (solo letras).';
   if(!v.apellido) errs.apellido = 'El apellido es obligatorio.'; else if(!nameRe.test(v.apellido)) errs.apellido = 'Ingresá un apellido válido (solo letras).';
   if(v.empresa.length > 80) v.empresa = v.empresa.slice(0, 80);
@@ -92,7 +95,7 @@ function submitForm(fd){
   if(Object.keys(errs).length){ errs.general = 'Revisá los campos marcados.'; viewForm(v, errs); return; }
   State.consentimiento = new Date().toISOString();
   const cap = s => s.toLowerCase().replace(/(^|[\s'-])(\S)/g, (m, a, b) => a + b.toUpperCase());
-  State.participant = { legajo:v.legajo, nombre:cap(v.nombre), apellido:cap(v.apellido), empresa:v.empresa, sector:v.sector, tipoVehiculo:v.tipoVehiculo };
+  State.participant = { dni:v.dni, legajo:v.legajo, nombre:cap(v.nombre), apellido:cap(v.apellido), empresa:v.empresa, sector:v.sector, tipoVehiculo:v.tipoVehiculo };
   viewConfirm();
 }
 
@@ -102,15 +105,15 @@ function viewConfirm(){
   const p = State.participant, row = (k, val) => `<tr><th>${k}</th><td>${val ? esc(val) : '<span class="dim">No indicado</span>'}</td></tr>`;
   show(`<div class="gate-card">
     <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">Paso 2 de 2</p><h1>Confirmá tus datos</h1><p class="muted">Verificá que la información sea correcta antes de comenzar.</p></div></div>
-    <table class="confirm-table">${row('Legajo',p.legajo)}${row('Nombre',p.nombre)}${row('Apellido',p.apellido)}${row('Empresa',p.empresa)}${row('Sector / Área',p.sector)}${row('Tipo de vehículo',p.tipoVehiculo)}</table>
+    <table class="confirm-table">${row('DNI',fmtDni(p.dni))}${row('Legajo',p.legajo)}${row('Nombre',p.nombre)}${row('Apellido',p.apellido)}${row('Empresa',p.empresa)}${row('Sector / Área',p.sector)}${row('Tipo de vehículo',p.tipoVehiculo)}</table>
     <div class="actions"><button class="btn ghost" id="cEdit">${ic('arrowl')} Corregir datos</button><button class="btn primary" id="cOk">${ic('check')} Confirmar datos</button></div>
   </div>`, '#cOk');
   $('#cEdit').onclick = () => viewForm({ ...State.participant, consent: !!State.consentimiento }, {});
   $('#cOk').onclick = () => {
-    if(SessionReg.has(State.participant.legajo)){ viewForm({ ...State.participant, consent: !!State.consentimiento }, { legajo:'Este legajo ya fue registrado en esta sesión.', general:'Registro duplicado.' }); return; }
+    if(SessionReg.has(clavePersona(State.participant))){ viewForm({ ...State.participant, consent: !!State.consentimiento }, { dni:'Este DNI ya fue registrado en esta sesión.', general:'Registro duplicado.' }); return; }
     State.recordId = uid();
     State.training.fechaInicio = new Date().toISOString();
-    SessionReg.add(State.participant.legajo);
+    SessionReg.add(clavePersona(State.participant));
     State.token = randomToken();
     State.jornada = JORNADA ? JORNADA.codigo : null;
     persist();
@@ -132,7 +135,7 @@ function viewFirma(){
   const p = State.participant, hoy = fmtDate(new Date());
   show(`<div class="gate-card">
     <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">Registro de asistencia</p><h1>Firmá tu asistencia</h1><p class="muted">Usá el dedo (o el mouse) dentro del recuadro.</p></div></div>
-    <p class="declaracion">Yo, <b>${esc(fullName())}</b>, legajo <b>${esc(p.legajo)}</b>, declaro haber asistido a la capacitación <b>“${esc(CONFIG.capacitacion.nombre)}”</b>, dictada por ${esc(capacitador())} (${esc(CONFIG.consultora.nombre)}), el día ${hoy}${JORNADA && JORNADA.empresa ? ` para ${esc(JORNADA.empresa)}` : ''}.</p>
+    <p class="declaracion">Yo, <b>${esc(fullName())}</b>, ${p.dni ? `DNI <b>${esc(fmtDni(p.dni))}</b>` : `legajo <b>${esc(p.legajo)}</b>`}, declaro haber asistido a la capacitación <b>“${esc(CONFIG.capacitacion.nombre)}”</b>, dictada por ${esc(capacitador())} (${esc(CONFIG.consultora.nombre)}), el día ${hoy}${JORNADA && JORNADA.empresa ? ` para ${esc(JORNADA.empresa)}` : ''}.</p>
     <div class="sigpad-wrap"><canvas id="sigpad" class="sigpad" aria-label="Recuadro para firmar"></canvas><span class="sig-hint" id="sigHint">Firmá acá</span></div>
     <div class="actions">
       <button class="btn ghost" id="sigClear">${ic('refresh')} Borrar</button>
@@ -192,7 +195,7 @@ function viewWelcome(){
   show(`<div class="gate-card welcome">
     ${ic('check','xl')}
     <h1>Bienvenido/a, ${esc(p.nombre)} ${esc(p.apellido)}</h1>
-    <p class="leg">Legajo: ${esc(p.legajo)}</p>
+    <p class="leg">${esc(idPersona(p))}</p>
     <div class="signature">${instructorCard('Te acompaña en esta capacitación')}</div>
     <p class="muted" style="margin:18px auto 0;max-width:520px">La evaluación tiene ${CONTENT.quiz.length} preguntas de opción múltiple. Aprobás con ${CONFIG.aprobacion.porcentajeMinimo}% o más. Después de cada respuesta vas a ver la explicación.</p>
     <div class="actions" style="justify-content:center;margin-top:24px"><button class="btn ghost" id="wRep">${ic('eye')} Repaso rápido</button><button class="btn primary lg" id="wGo">${ic('play')} COMENZAR EVALUACIÓN</button></div>
@@ -264,7 +267,7 @@ function finishQuiz(){
 function paintSync(){
   const box = $('#syncBox'); if(!box) return;
   const M = {
-    local:   ['', `${ic('info')} <span>Prototipo: el resultado quedó guardado en este dispositivo. La planilla central todavía no está conectada.</span>`],
+    local:   ['', `${ic('info')} <span>El resultado quedó guardado en este dispositivo. El registro central no está conectado.</span>`],
     sending: ['', `${ic('refresh')} <span>Enviando resultado…</span>`],
     sent:    ['ok', `${ic('check')} <span>Resultado registrado en ${esc(CONFIG.consultora.nombre)}${State.verificacion ? ` · Código de verificación: <b>${esc(State.verificacion)}</b>` : ''}.</span>`],
     queued:  ['warn', `${ic('clock')} <span>Sin conexión: el resultado quedó guardado en este dispositivo y se enviará automáticamente cuando vuelva la señal.</span>`],
@@ -301,7 +304,7 @@ function viewResult(){
     <h2>${ic('award')} CAPACITACIÓN COMPLETADA</h2>
     <dl class="cert-grid">
       <div><dt>Nombre y apellido</dt><dd>${esc(fullName())}</dd></div>
-      <div><dt>Legajo</dt><dd>${esc(State.participant.legajo)}</dd></div>
+      ${State.participant.dni ? `<div><dt>DNI</dt><dd>${esc(fmtDni(State.participant.dni))}</dd></div>` : ''}${State.participant.legajo ? `<div><dt>Legajo</dt><dd>${esc(State.participant.legajo)}</dd></div>` : ''}
       <div><dt>Capacitación</dt><dd>${esc(CONFIG.capacitacion.nombre)}</dd></div>
       <div><dt>Resultado</dt><dd>${e.porcentaje} %</dd></div>
       <div><dt>Estado</dt><dd style="color:#5fd699">APROBADO</dd></div>
@@ -338,7 +341,7 @@ function viewFin(){
   show(`<div class="gate-card">
     <div class="gate-head">${brandMarkHTML()}<div><p class="eyebrow">Registro de capacitación</p><h1>¡Gracias, ${esc(p.nombre)}!</h1><p class="muted">Gracias por tu participación y por sumarte a una cultura preventiva.</p></div></div>
     <table class="confirm-table">
-      <tr><th>Participante</th><td>${esc(fullName())} · Legajo ${esc(p.legajo)}</td></tr>
+      <tr><th>Participante</th><td>${esc(fullName())} · ${esc(idPersona(p))}</td></tr>
       <tr><th>Fecha</th><td>${fmtDate(t.fechaInicio)} · ${fmtTime(t.fechaInicio)} a ${fmtTime(t.fechaFin)} (≈ ${t.duracion} min)</td></tr>
       <tr><th>Resultado</th><td>${e.correctas} de ${e.preguntas} correctas · ${e.porcentaje}% · ${e.intentos} intento${e.intentos > 1 ? 's' : ''}</td></tr>
       <tr><th>Estado</th><td><span class="status-badge ${ok ? 'ok' : 'bad'}">${e.estado}</span></td></tr>

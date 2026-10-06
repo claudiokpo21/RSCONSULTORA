@@ -3,7 +3,7 @@
    Unas pocas preguntas (CONFIG.reportes.refuerzo), en la versión alternativa del banco para que no
    sean idénticas a las de la evaluación. Muestra la respuesta correcta y la explicación después de
    cada una: sirve para repasar y, a nivel de grupo, para medir cuánto se retuvo.
-   No pide nombre ni legajo. Se puede responder hasta 180 días después de la jornada.
+   No pide nombre, DNI ni legajo. Se puede responder hasta 180 días después de la jornada.
    Se guarda { tema: opción elegida (índice original de la versión 1) }.
    RS Consultora · Fatiga y Conducción Segura */
 
@@ -26,7 +26,7 @@ function intro(){
       <p class="muted">${esc(CONFIG.capacitacion.nombre)}${R.jornada ? `<br>${esc(R.jornada.empresa || '')} · capacitación del ${fmtDate(R.jornada.fecha + 'T12:00:00')}` : ''}</p></div></div>
     <ul class="diag-points">
       <li>${ic('clock')} <span><b>${KS.length} preguntas</b>, un minuto.</span></li>
-      <li>${ic('lock')} <span><b>Es anónimo:</b> no pide tu nombre ni tu legajo. <a href="privacidad.html" target="_blank" rel="noopener" style="color:var(--amber)">Aviso de privacidad</a></span></li>
+      <li>${ic('lock')} <span><b>Es anónimo:</b> no pide tu nombre ni tu DNI. <a href="privacidad.html" target="_blank" rel="noopener" style="color:var(--amber)">Aviso de privacidad</a></span></li>
       <li>${ic('repeat')} <span><b>Es un repaso.</b> Después de cada respuesta vas a ver la correcta y por qué.</span></li>
     </ul>
     <div class="actions"><button class="btn primary lg" id="rGo">${ic('play')} COMENZAR</button></div>

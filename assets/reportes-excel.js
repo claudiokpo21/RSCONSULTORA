@@ -18,10 +18,10 @@ function hojasDetalle(regs, jornadas, nomina, desafios, diags){
     rows:E.map(e => [e.nombre, e.jornadas.length, e.n, e.aprobados, xlPct(e.pctAprob), xlPct(e.promedio), e.sat.prom ?? '', e.vigentes, e.porVencer, e.vencidos, e.nominaN || '', xlPct(e.cobertura)]) });
   sheets.push({ name:'Jornadas', cols:[11,12,30,26,24,13,12,10,12], head:['Fecha','Código','Empresa','Lugar','Capacitador','Participantes','Aprobados','Firmas','Estado'],
     rows:jornadas.map(j => [xlFecha(j.fecha), j.codigo, j.empresa, j.lugar || '', j.capacitador, j.participantes, j.aprobados, j.firmas, j.estado]) });
-  sheets.push({ name:'Participantes', cols:[11,28,10,12,22,22,22,16,10,15,9,10,13,12,13,12], head:['Fecha','Empresa','Jornada','Legajo','Apellido','Nombre','Sector','Vehículo','Resultado','Estado','Intentos','Firma','Verificación','Vence','Vigencia','Satisfacción'],
+  sheets.push({ name:'Participantes', cols:[11,28,10,12,12,22,22,22,16,10,15,9,10,13,12,13,12], head:['Fecha','Empresa','Jornada','DNI','Legajo','Apellido','Nombre','Sector','Vehículo','Resultado','Estado','Intentos','Firma','Verificación','Vence','Vigencia','Satisfacción'],
     rows:regs.slice().sort((a, b) => (An.day(b.fecha)).localeCompare(An.day(a.fecha)) || String(a.apellido).localeCompare(b.apellido, 'es')).map(r => {
       const v = r.estado === 'APROBADO' ? An.estadoVigencia(r.fecha) : null;
-      return [xlFecha(r.fecha), r.empresa || '', r.jornada_codigo || '', r.legajo, r.apellido, r.nombre, r.sector || '', r.tipo_vehiculo || '', xlPct(r.porcentaje), xlEstado(r.estado), r.intentos || 0,
+      return [xlFecha(r.fecha), r.empresa || '', r.jornada_codigo || '', fmtDni(r.dni), r.legajo || '', r.apellido, r.nombre, r.sector || '', r.tipo_vehiculo || '', xlPct(r.porcentaje), xlEstado(r.estado), r.intentos || 0,
         r.firmado ? 'Sí' : 'No', r.verificacion || '', v && v.vence ? fmtDate(v.vence) : '', v ? xlVig(v.estado) : '', r.satisfaccion || ''];
     }) });
   sheets.push({ name:'Temas', cols:[8,28,70,12,12,12], head:['N.º','Tema','Pregunta','Evaluados','Correctas','% acierto'],
@@ -33,10 +33,10 @@ function hojasDetalle(regs, jornadas, nomina, desafios, diags){
       rows:M.map(r => [r.grupo, r.n, ...r.cells.map(p => ({ v:p, s: p < CONFIG.aprobacion.porcentajeMinimo ? 'bad' : 'pct' })), xlPct(r.prom)]) });
   });
   const venc = pers.filter(p => p.ultimaAprob).sort((a, b) => (a.vig.vence || 0) - (b.vig.vence || 0));
-  sheets.push({ name:'Vencimientos', cols:[28,12,22,22,22,14,14,14], head:['Empresa','Legajo','Apellido','Nombre','Sector','Aprobó el','Vence','Estado'],
-    rows:venc.map(p => [p.empresa || '', p.legajo, p.apellido, p.nombre, p.sector || '', xlFecha(p.ultimaAprob.fecha), p.vig.vence ? fmtDate(p.vig.vence) : 'Sin vencimiento', xlVig(p.vig.estado)]) });
-  const pend = E.flatMap(e => e.pendientes.map(n => [e.nombre, n.legajo, n.apellido || '', n.nombre || '', n.sector || '']));
-  if(pend.length) sheets.push({ name:'Pendientes (nómina)', cols:[28,12,22,22,22], head:['Empresa','Legajo','Apellido','Nombre','Sector'], rows:pend });
+  sheets.push({ name:'Vencimientos', cols:[28,12,12,22,22,22,14,14,14], head:['Empresa','DNI','Legajo','Apellido','Nombre','Sector','Aprobó el','Vence','Estado'],
+    rows:venc.map(p => [p.empresa || '', fmtDni(p.dni), p.legajo || '', p.apellido, p.nombre, p.sector || '', xlFecha(p.ultimaAprob.fecha), p.vig.vence ? fmtDate(p.vig.vence) : 'Sin vencimiento', xlVig(p.vig.estado)]) });
+  const pend = E.flatMap(e => e.pendientes.map(n => [e.nombre, fmtDni(n.dni), n.legajo || '', n.apellido || '', n.nombre || '', n.sector || '']));
+  if(pend.length) sheets.push({ name:'Pendientes (nómina)', cols:[28,12,12,22,22,22], head:['Empresa','DNI','Legajo','Apellido','Nombre','Sector'], rows:pend });
   if(s.comentarios.length) sheets.push({ name:'Comentarios', cols:[100], head:['Comentarios de los participantes (anónimos)'], rows:s.comentarios.map(c => [c]) });
   if(ad.n) sheets.push({ name:'Antes y después', cols:[28,70,14,14,14], head:['Tema','Pregunta','Antes','Después','Mejora (puntos)'],
     rows:ad.items.map(x => [tema(x.k), x.q.q, xlPct(x.pre), xlPct(x.post), x.pre != null && x.post != null ? x.post - x.pre : '']) });

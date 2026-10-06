@@ -359,7 +359,7 @@ function showEvalQr(){
   box.innerHTML = `<div class="panel qr-slide" style="margin-top:20px">
     <div style="text-align:center"><div class="qr-box" role="img" aria-label="Código QR de la evaluación">${qrSVG(url)}</div><p class="qr-url">${esc(url.replace(/^https?:\/\//, ''))}</p></div>
     <div>${head('Evaluación final','Ahora, tu evaluación individual','Escaneá el código para rendir la evaluación y obtener tu constancia.')}
-    <ol class="steps"><li>Escaneá el código QR</li><li>Completá tu legajo, nombre y apellido</li><li>Respondé ${CONTENT.quiz.length} preguntas (aprobás con ${CONFIG.aprobacion.porcentajeMinimo}% o más)</li><li>Si aprobás, guardá tu constancia</li></ol></div></div>`;
+    <ol class="steps"><li>Escaneá el código QR</li><li>Completá tu DNI, nombre y apellido</li><li>Respondé ${CONTENT.quiz.length} preguntas (aprobás con ${CONFIG.aprobacion.porcentajeMinimo}% o más)</li><li>Si aprobás, guardá tu constancia</li></ol></div></div>`;
   box.scrollIntoView({ behavior: REDUCED ? 'auto' : 'smooth', block:'start' });
 }
 function exportCsv(){

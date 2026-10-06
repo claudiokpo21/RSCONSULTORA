@@ -115,13 +115,18 @@ const An = {
     const dias = Math.ceil((v - new Date()) / 864e5);
     return { estado: dias < 0 ? 'vencido' : dias <= REP.avisoVencimientoDias ? 'por vencer' : 'vigente', vence:v, dias };
   },
-  /** Última aprobación de cada trabajador (por empresa + legajo). */
+  /** Última aprobación de cada trabajador (por empresa + DNI; en registros anteriores, por legajo).
+      Si un registro tiene DNI y legajo, los registros viejos con ese legajo se suman a la misma persona. */
   personas(regs){
-    const m = new Map();
+    const m = new Map(), leg = r => String(r.legajo || '').toUpperCase(), dni = r => normDni(r.dni);
+    const legADni = new Map();
+    regs.forEach(r => { if(dni(r) && leg(r)) legADni.set(this.key(r.empresa) + '|' + leg(r), dni(r)); });
     regs.forEach(r => {
-      const k = this.key(r.empresa) + '|' + String(r.legajo || '').toUpperCase();
-      if(!m.has(k)) m.set(k, { key:k, empresa:r.empresa, legajo:String(r.legajo || '').toUpperCase(), nombre:r.nombre, apellido:r.apellido, sector:r.sector, tipo:r.tipo_vehiculo, regs:[] });
-      const p = m.get(k); p.regs.push(r); if(r.sector) p.sector = r.sector; if(r.tipo_vehiculo) p.tipo = r.tipo_vehiculo;
+      const ek = this.key(r.empresa), d = dni(r) || legADni.get(ek + '|' + leg(r)) || '';
+      const k = ek + '|' + (d ? 'D' + d : 'L' + leg(r));
+      if(!m.has(k)) m.set(k, { key:k, empresa:r.empresa, dni:d, legajo:leg(r), nombre:r.nombre, apellido:r.apellido, sector:r.sector, tipo:r.tipo_vehiculo, regs:[], legajos:new Set() });
+      const p = m.get(k); p.regs.push(r); if(leg(r)){ p.legajos.add(leg(r)); p.legajo = leg(r); }
+      if(r.sector) p.sector = r.sector; if(r.tipo_vehiculo) p.tipo = r.tipo_vehiculo;
     });
     m.forEach(p => {
       p.regs.sort((a, b) => this.day(a.fecha) < this.day(b.fecha) ? -1 : 1);
@@ -140,16 +145,19 @@ const An = {
     regs.forEach(r => { const e = add(r.empresa); e && e.regs.push(r); });
     (nomina || []).forEach(n => { const e = add(n.empresa); e && e.nomina.push(n); });
     return [...keys.values()].map(e => {
-      const pers = this.personas(e.regs), byLeg = new Map(pers.map(p => [p.legajo, p]));
+      const pers = this.personas(e.regs), byDni = new Map(pers.filter(p => p.dni).map(p => [p.dni, p])), byLeg = new Map();
+      pers.forEach(p => p.legajos.forEach(l => byLeg.set(l, p)));
+      const persona = n => (n.dni && byDni.get(normDni(n.dni))) || (n.legajo && byLeg.get(String(n.legajo).toUpperCase())) || null;
+      e.persona = persona;
       const conAprob = pers.filter(p => p.ultimaAprob);
       const vig = conAprob.filter(p => p.vig.estado !== 'vencido');
-      const cub = e.nomina.length ? e.nomina.filter(n => { const p = byLeg.get(String(n.legajo).toUpperCase()); return p && p.ultimaAprob && p.vig.estado !== 'vencido'; }).length : null;
+      const cub = e.nomina.length ? e.nomina.filter(n => { const p = persona(n); return p && p.ultimaAprob && p.vig.estado !== 'vencido'; }).length : null;
       const fechas = e.jornadas.map(j => this.day(j.fecha)).concat(e.regs.map(r => this.day(r.fecha))).filter(Boolean).sort();
       return { ...e, ...this.resumen(e.regs), personas:pers, trabajadores:pers.length,
         vigentes: vig.filter(p => p.vig.estado === 'vigente').length, porVencer: vig.filter(p => p.vig.estado === 'por vencer').length,
         vencidos: conAprob.filter(p => p.vig.estado === 'vencido').length,
         nominaN:e.nomina.length, cubiertos:cub, cobertura: e.nomina.length ? this.pct(cub, e.nomina.length) : null,
-        pendientes: e.nomina.filter(n => { const p = byLeg.get(String(n.legajo).toUpperCase()); return !(p && p.ultimaAprob && p.vig.estado !== 'vencido'); }),
+        pendientes: e.nomina.filter(n => { const p = persona(n); return !(p && p.ultimaAprob && p.vig.estado !== 'vencido'); }),
         ultima: fechas[fechas.length - 1] || null, sat:this.satisfaccion(e.regs) };
     }).sort((a, b) => (b.ultima || '').localeCompare(a.ultima || ''));
   },

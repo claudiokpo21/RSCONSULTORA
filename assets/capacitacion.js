@@ -418,7 +418,7 @@ const SLIDES = [
       ${head('Evaluación final','Ahora, tu evaluación individual','Escaneá el código con la cámara de tu celular o abrí el enlace en tu computadora.')}
       <ol class="steps">
         <li>Escaneá el código QR</li>
-        <li>Completá tu legajo, nombre y apellido</li>
+        <li>Completá tu DNI, nombre y apellido</li>
         <li>Respondé ${CONTENT.quiz.length} preguntas (aprobás con ${CONFIG.aprobacion.porcentajeMinimo}% o más)</li>
         <li>Si aprobás, guardá tu constancia</li>
       </ol>

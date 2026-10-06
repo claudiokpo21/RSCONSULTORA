@@ -26,14 +26,14 @@ function closeAdmin(){ forgetAdmin(); location.href = 'index.html'; }
 
 function flat(r){
   const p = r.participant, t = r.training, e = r.evaluation;
-  return { id:r.id, capacitador:t.capacitador || '', legajo:p.legajo, nombre:p.nombre, apellido:p.apellido, empresa:p.empresa || '', sector:p.sector || '', tipoVehiculo:p.tipoVehiculo || '',
+  return { id:r.id, capacitador:t.capacitador || '', dni:fmtDni(p.dni), legajo:p.legajo || '', nombre:p.nombre, apellido:p.apellido, empresa:p.empresa || '', sector:p.sector || '', tipoVehiculo:p.tipoVehiculo || '',
     fecha: t.fechaInicio ? fmtDate(t.fechaInicio) : '', fechaISO: t.fechaInicio ? isoLocal(t.fechaInicio) : '',
     horaInicio: t.fechaInicio ? fmtTime(t.fechaInicio) : '', horaFin: t.fechaFin ? fmtTime(t.fechaFin) : '', duracion: t.duracion ?? '',
     preguntas:e.preguntas, correctas:e.correctas, incorrectas:e.incorrectas, porcentaje:e.porcentaje, intentos:e.intentos, estado:e.estado };
 }
 function filteredRows(){
   const F = adminFilters, has = (a,b) => !b || String(a).toLowerCase().includes(b.toLowerCase());
-  return Store.all().map(flat).filter(r => has(r.legajo,F.legajo) && has(r.nombre,F.nombre) && has(r.apellido,F.apellido) && has(r.empresa,F.empresa) && has(r.sector,F.sector)
+  return Store.all().map(flat).filter(r => (has(r.legajo,F.legajo) || has(r.dni,F.legajo) || has(normDni(r.dni),F.legajo)) && has(r.nombre,F.nombre) && has(r.apellido,F.apellido) && has(r.empresa,F.empresa) && has(r.sector,F.sector)
     && (!F.tipo || r.tipoVehiculo === F.tipo) && (!F.estado || r.estado === F.estado)
     && (!F.desde || r.fechaISO >= F.desde) && (!F.hasta || r.fechaISO <= F.hasta))
     .sort((a,b) => (b.fechaISO + b.horaInicio).localeCompare(a.fechaISO + a.horaInicio));
@@ -67,12 +67,12 @@ function renderAdmin(){
     <p class="sm dim" style="margin:-6px 0 14px">Indicadores calculados sobre los registros filtrados (${rows.length} de ${all}). *Incluye participantes que indicaron "Ambos". El promedio considera solo evaluaciones completadas.</p>
     <div class="groups">${groupHTML('Por empresa', groupCount(rows,'empresa'), rows.length)}${groupHTML('Por sector', groupCount(rows,'sector'), rows.length)}${groupHTML('Por tipo de vehículo', groupCount(rows,'tipoVehiculo'), rows.length)}</div>
     <div class="panel" style="margin-bottom:12px">
-      <div class="filters">${inp('legajo','Legajo')}${inp('nombre','Nombre')}${inp('apellido','Apellido')}${inp('empresa','Empresa')}${inp('sector','Sector')}
+      <div class="filters">${inp('legajo','DNI o legajo')}${inp('nombre','Nombre')}${inp('apellido','Apellido')}${inp('empresa','Empresa')}${inp('sector','Sector')}
         ${sel('tipo','Tipo de vehículo',TIPOS)}${sel('estado','Estado',['APROBADO','NO APROBADO','SIN COMPLETAR'])}${inp('desde','Desde','date')}${inp('hasta','Hasta','date')}</div>
       <button class="btn ghost sm" id="aClear">${ic('refresh')} Limpiar filtros</button>
     </div>
-    <div class="table-wrap"><table class="data"><thead><tr><th>Legajo</th><th>Apellido y nombre</th><th>Empresa</th><th>Sector</th><th>Vehículo</th><th>Fecha</th><th>Inicio–Fin</th><th>Duración</th><th>Correctas</th><th>%</th><th>Intentos</th><th>Estado</th></tr></thead>
-      <tbody>${rows.length ? rows.map(r => `<tr><td>${esc(r.legajo)}</td><td>${esc(r.apellido)}, ${esc(r.nombre)}</td><td>${esc(r.empresa) || '–'}</td><td>${esc(r.sector) || '–'}</td><td>${esc(r.tipoVehiculo) || '–'}</td><td>${r.fecha}</td><td>${r.horaInicio}${r.horaFin ? '–' + r.horaFin : ''}</td><td>${r.duracion !== '' ? r.duracion + ' min' : '–'}</td><td>${r.intentos ? r.correctas + '/' + r.preguntas : '–'}</td><td>${r.intentos ? r.porcentaje + '%' : '–'}</td><td>${r.intentos}</td><td><span class="st ${stCls(r.estado)}">${r.estado}</span></td></tr>`).join('') : `<tr><td colspan="12" class="muted" style="text-align:center;padding:26px">No hay registros${all ? ' que coincidan con los filtros' : ' en este dispositivo'}.</td></tr>`}</tbody></table></div>
+    <div class="table-wrap"><table class="data"><thead><tr><th>DNI</th><th>Legajo</th><th>Apellido y nombre</th><th>Empresa</th><th>Sector</th><th>Vehículo</th><th>Fecha</th><th>Inicio–Fin</th><th>Duración</th><th>Correctas</th><th>%</th><th>Intentos</th><th>Estado</th></tr></thead>
+      <tbody>${rows.length ? rows.map(r => `<tr><td>${esc(r.dni || '–')}</td><td>${esc(r.legajo || '–')}</td><td>${esc(r.apellido)}, ${esc(r.nombre)}</td><td>${esc(r.empresa) || '–'}</td><td>${esc(r.sector) || '–'}</td><td>${esc(r.tipoVehiculo) || '–'}</td><td>${r.fecha}</td><td>${r.horaInicio}${r.horaFin ? '–' + r.horaFin : ''}</td><td>${r.duracion !== '' ? r.duracion + ' min' : '–'}</td><td>${r.intentos ? r.correctas + '/' + r.preguntas : '–'}</td><td>${r.intentos ? r.porcentaje + '%' : '–'}</td><td>${r.intentos}</td><td><span class="st ${stCls(r.estado)}">${r.estado}</span></td></tr>`).join('') : `<tr><td colspan="13" class="muted" style="text-align:center;padding:26px">No hay registros${all ? ' que coincidan con los filtros' : ' en este dispositivo'}.</td></tr>`}</tbody></table></div>
   </div>`;
   $$('[data-f]', adminEl).forEach(el => el.addEventListener(el.tagName === 'SELECT' || el.type === 'date' ? 'change' : 'input', () => {
     adminFilters[el.dataset.f] = el.value.trim(); const id = el.id, pos = el.selectionStart; renderAdmin();
@@ -87,7 +87,7 @@ function renderAdmin(){
   };
 }
 function exportCSV(rows){
-  const cols = [['legajo','Legajo'],['nombre','Nombre'],['apellido','Apellido'],['empresa','Empresa'],['sector','Sector'],['tipoVehiculo','Tipo de vehículo'],['fecha','Fecha'],['horaInicio','Hora de inicio'],['horaFin','Hora de finalización'],['duracion','Duración (min)'],['preguntas','Cantidad de preguntas'],['correctas','Respuestas correctas'],['incorrectas','Respuestas incorrectas'],['porcentaje','Porcentaje'],['intentos','Intentos'],['estado','Estado'],['capacitador','Capacitador']];
+  const cols = [['dni','DNI'],['legajo','Legajo'],['nombre','Nombre'],['apellido','Apellido'],['empresa','Empresa'],['sector','Sector'],['tipoVehiculo','Tipo de vehículo'],['fecha','Fecha'],['horaInicio','Hora de inicio'],['horaFin','Hora de finalización'],['duracion','Duración (min)'],['preguntas','Cantidad de preguntas'],['correctas','Respuestas correctas'],['incorrectas','Respuestas incorrectas'],['porcentaje','Porcentaje'],['intentos','Intentos'],['estado','Estado'],['capacitador','Capacitador']];
   const cell = v => { let s = String(v ?? ''); if(/^[=+\-@]/.test(s)) s = "'" + s; return /[";\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
   const csv = '\ufeff' + [cols.map(c => c[1]).join(';'), ...rows.map(r => cols.map(c => cell(r[c[0]])).join(';'))].join('\r\n');
   download(`resultados_fatiga_${isoLocal(new Date())}.csv`, csv, 'text/csv;charset=utf-8');
@@ -111,7 +111,7 @@ function adminBanner(){
     <div style="max-width:780px">
       <p class="eyebrow">Origen de los datos</p>
       <p>Esta vista muestra los registros guardados <b>en este dispositivo</b>${Store.available ? '' : ' (almacenamiento local no disponible)'}. Los resultados que los participantes rinden desde sus celulares ${conectado ? 'llegan a la <b>planilla central</b>.' : 'llegarán a una planilla central cuando se conecte Google Sheets (ver README).'}</p>
-      <p class="sm dim" style="margin-top:6px">Integración: ${conectado ? '<span style="color:#5fd699">conectada</span>' : '<span style="color:var(--amber)">no conectada (prototipo)</span>'} · La contraseña de este prototipo es una barrera básica; para producción, usar autenticación corporativa.</p>
+      <p class="sm dim" style="margin-top:6px">Integración: ${conectado ? '<span style="color:#5fd699">conectada</span>' : '<span style="color:var(--amber)">no conectada (modo local)</span>'} · La contraseña del modo local es una barrera básica; para producción, usar autenticación corporativa.</p>
     </div>
     ${I.planillaUrl ? `<a class="btn green" href="${esc(I.planillaUrl)}" target="_blank" rel="noopener">${ic('clipboard')} ABRIR PLANILLA CENTRAL</a>` : ''}
   </div>`;

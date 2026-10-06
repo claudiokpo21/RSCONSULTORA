@@ -23,8 +23,10 @@ const CONFIG = {
   // Criterio de aprobación (porcentaje mínimo). Modificable.
   aprobacion: { porcentajeMinimo: 80 },
 
-  // Formato válido de legajo: 3 a 12 caracteres alfanuméricos (se admite guion).
-  legajo: { patron: /^[A-Za-z0-9-]{3,12}$/, descripcion: 'Entre 3 y 12 caracteres: letras, números o guion.' },
+  // IDENTIFICACIÓN DEL PARTICIPANTE. El DNI identifica a la persona en la constancia y los certificados.
+  // El legajo es opcional: sirve para cruzar con la nómina de la empresa.
+  dni: { obligatorio: true, descripcion: '7 u 8 números, sin puntos.' },
+  legajo: { obligatorio: false, patron: /^[A-Za-z0-9-]{3,12}$/, descripcion: 'Opcional. Entre 3 y 12 caracteres: letras, números o guion.' },
 
   // Acceso de administración. IMPORTANTE: en una versión local sin servidor esta clave
   // es solo una barrera básica (puede leerse en el código). Cambiarla antes de usar.
@@ -54,7 +56,7 @@ const CONFIG = {
   //       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(registro) })
   integracion: {
     // URL de la aplicación web de Google Apps Script (ver apps-script/Code.gs y README.md).
-    // Vacío = prototipo: los resultados quedan solo en el dispositivo de cada participante.
+    // Vacío = modo local: los resultados quedan solo en el dispositivo de cada participante.
     endpoint: '',
     // Enlace a la planilla de Google Sheets con los resultados (se muestra en Administración).
     planillaUrl: '',

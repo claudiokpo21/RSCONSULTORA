@@ -143,9 +143,9 @@ function render(data){
     <h2 class="r-h2">Planilla de asistencia</h2>
     <p class="r-note">${esc(j.empresa)} · ${fmtDate(j.fecha + 'T12:00:00')} · ${esc(j.capacitacion)} · Capacitador: ${esc(j.capacitador)}</p>
     <table class="r-att">
-      <thead><tr><th>N.º</th><th>Legajo</th><th>Apellido y nombre</th><th>Sector</th><th>Vehículo</th><th>Resultado</th><th>Estado</th><th>Firma</th></tr></thead>
+      <thead><tr><th>N.º</th><th>DNI / legajo</th><th>Apellido y nombre</th><th>Sector</th><th>Vehículo</th><th>Resultado</th><th>Estado</th><th>Firma</th></tr></thead>
       <tbody>${A.regs.length ? A.regs.map((r, i) => `<tr>
-        <td>${i + 1}</td><td>${esc(r.legajo)}</td><td>${esc(r.apellido)}, ${esc(r.nombre)}</td><td>${esc(r.sector || '–')}</td><td>${esc(r.tipo_vehiculo || '–')}</td>
+        <td>${i + 1}</td><td>${esc(idCorto(r))}</td><td>${esc(r.apellido)}, ${esc(r.nombre)}</td><td>${esc(r.sector || '–')}</td><td>${esc(r.tipo_vehiculo || '–')}</td>
         <td>${r.porcentaje != null ? r.porcentaje + ' %' : '–'}</td><td>${esc(r.estado)}</td>
         <td class="sigcell">${r.firma ? `<img src="${r.firma}" alt="Firma de ${esc(r.apellido)}">` : '<span class="nofirma">Sin firma</span>'}</td></tr>`).join('')
         : '<tr><td colspan="8" class="r-empty">Sin participantes registrados.</td></tr>'}</tbody>
@@ -156,8 +156,8 @@ function render(data){
 }
 function csv(data){
   const j = data.jornada, cell = v => { let s = String(v ?? ''); if(/^[=+\-@]/.test(s)) s = "'" + s; return /[";\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
-  const head = ['N.º','Legajo','Apellido','Nombre','Sector','Tipo de vehículo','Porcentaje','Estado','Intentos','Asistencia firmada','Código de verificación'];
-  const rows = (data.registros || []).map((r, i) => [i + 1, r.legajo, r.apellido, r.nombre, r.sector, r.tipo_vehiculo, r.porcentaje, r.estado, r.intentos, r.firma ? 'Sí' : 'No', r.verificacion]);
+  const head = ['N.º','DNI','Legajo','Apellido','Nombre','Sector','Tipo de vehículo','Porcentaje','Estado','Intentos','Asistencia firmada','Código de verificación'];
+  const rows = (data.registros || []).map((r, i) => [i + 1, fmtDni(r.dni), r.legajo || '', r.apellido, r.nombre, r.sector, r.tipo_vehiculo, r.porcentaje, r.estado, r.intentos, r.firma ? 'Sí' : 'No', r.verificacion]);
   const out = '﻿' + [head, ...rows].map(r => r.map(cell).join(';')).join('\r\n');
   const url = URL.createObjectURL(new Blob([out], { type:'text/csv;charset=utf-8' })), a = document.createElement('a');
   a.href = url; a.download = `informe_${j.codigo}_${isoLocal(new Date())}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);

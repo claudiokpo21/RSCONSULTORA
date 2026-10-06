@@ -1,7 +1,7 @@
 'use strict';
 /* verificar.js — VERIFICACIÓN PÚBLICA DE CONSTANCIAS
    Cualquiera con el código impreso en la constancia puede comprobar que es auténtica.
-   Solo se muestran los datos necesarios; el legajo aparece parcialmente oculto.
+   Solo se muestran los datos necesarios; el DNI (o el legajo, en registros anteriores) aparece parcialmente oculto.
    RS Consultora · Fatiga y Conducción Segura */
 
 const view = $('#view');
@@ -42,7 +42,7 @@ async function check(raw){
       <p class="muted">${ok ? `Esta constancia fue emitida por ${esc(CONFIG.consultora.nombre)} y es auténtica.` : 'El código existe, pero el registro no figura como aprobado.'}</p>
       <table class="confirm-table">
         <tr><th>Participante</th><td>${esc(r.nombre)} ${esc(r.apellido)}</td></tr>
-        <tr><th>Legajo</th><td>${esc(r.legajo)}</td></tr>
+        ${r.dni ? `<tr><th>DNI</th><td>${esc(r.dni)}</td></tr>` : r.legajo ? `<tr><th>Legajo</th><td>${esc(r.legajo)}</td></tr>` : ''}
         ${r.empresa ? `<tr><th>Empresa</th><td>${esc(r.empresa)}</td></tr>` : ''}
         <tr><th>Capacitación</th><td>${esc(r.capacitacion || CONFIG.capacitacion.nombre)}</td></tr>
         <tr><th>Capacitador</th><td>${esc(r.capacitador || capacitador())}</td></tr>

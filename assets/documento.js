@@ -26,7 +26,7 @@ function certHTML(r, j){
         <div class="r-meta">Código del curso: ${esc(CONFIG.capacitacion.codigo)}<br>${r.verificacion ? `Verificación: <b>${esc(r.verificacion)}</b>` : ''}</div></div>
       <p class="c-kind">${ap ? 'Certificado de aprobación' : 'Constancia de asistencia'}</p>
       <h1 class="c-name">${esc(nombre)}</h1>
-      <p class="c-id">Legajo ${esc(r.legajo)}${emp ? ` · ${esc(emp)}` : ''}${r.sector ? ` · ${esc(r.sector)}` : ''}</p>
+      <p class="c-id">${esc(idPersona(r))}${emp ? ` · ${esc(emp)}` : ''}${r.sector ? ` · ${esc(r.sector)}` : ''}</p>
       <p class="c-body">${ap
         ? `aprobó la capacitación <b>“${esc((j && j.capacitacion) || CONFIG.capacitacion.nombre)}”</b>${REP.mostrarNotaEnCertificado ? `, con un resultado de <b>${r.porcentaje} %</b> en la evaluación final (criterio de aprobación: ${r.criterio || MIN} %)` : ', habiendo aprobado la evaluación final'}.`
         : `asistió a la capacitación <b>“${esc((j && j.capacitacion) || CONFIG.capacitacion.nombre)}”</b>.`}</p>
@@ -73,7 +73,7 @@ function individualHTML(r, j, grupo, historial){
     <h1 class="r-title">Informe individual de capacitación</h1>
     <p class="r-sub">${esc((j && j.capacitacion) || CONFIG.capacitacion.nombre)}</p>
     <table class="r-data">
-      <tr><th>Apellido y nombre</th><td><b>${esc(r.apellido)}, ${esc(r.nombre)}</b></td><th>Legajo</th><td>${esc(r.legajo)}</td></tr>
+      <tr><th>Apellido y nombre</th><td><b>${esc(r.apellido)}, ${esc(r.nombre)}</b></td><th>${r.dni ? 'DNI' : 'Legajo'}</th><td>${esc(r.dni ? fmtDni(r.dni) + (r.legajo ? ' · Legajo ' + r.legajo : '') : r.legajo)}</td></tr>
       <tr><th>Empresa</th><td>${esc((j && j.empresa) || r.empresa || '–')}</td><th>Sector</th><td>${esc(r.sector || '–')}</td></tr>
       <tr><th>Tipo de vehículo</th><td>${esc(r.tipo_vehiculo || '–')}</td><th>Fecha</th><td>${fdate(j ? j.fecha : r.fecha)}</td></tr>
       <tr><th>Jornada</th><td>${esc(j ? j.codigo + (j.lugar ? ' · ' + j.lugar : '') : 'Sin jornada')}</td><th>Capacitador</th><td>${esc((j && j.capacitador) || r.capacitador || capacitador())}</td></tr>
@@ -108,7 +108,7 @@ function renderIndividual(regs, j, grupo, todos){
   $('#tbTitle').textContent = RID ? 'Informe individual' : `Informes individuales · ${j ? j.empresa + ' · ' + j.codigo : ''} (${list.length})`;
   if(!list.length) return msg('Sin informes para emitir', 'No hay participantes con evaluación o asistencia registrada.');
   root.innerHTML = list.map(r => {
-    const hist = (todos || []).filter(h => h.id !== r.id && String(h.legajo).toUpperCase() === String(r.legajo).toUpperCase() && An.key(h.empresa) === An.key((j && j.empresa) || r.empresa))
+    const hist = (todos || []).filter(h => h.id !== r.id && ((r.dni && normDni(h.dni) === normDni(r.dni)) || (r.legajo && String(h.legajo || '').toUpperCase() === String(r.legajo).toUpperCase() && An.key(h.empresa) === An.key((j && j.empresa) || r.empresa))))
       .sort((a, b) => An.day(b.fecha).localeCompare(An.day(a.fecha)));
     return individualHTML(r, j, grupo, hist);
   }).join('');
@@ -198,12 +198,12 @@ function renderEmpresa(e, T){
     ${head()}
     <h2 class="r-h2">Estado de los trabajadores capacitados</h2>
     <p class="r-note">Última capacitación de cada trabajador y vigencia de su certificado.</p>
-    <table class="r-att"><thead><tr><th>Legajo</th><th>Apellido y nombre</th><th>Sector</th><th>Última</th><th>Resultado</th><th>Estado</th><th>Vence</th><th>Vigencia</th></tr></thead>
-      <tbody>${pers.map(p => { const u = p.ultimo; return `<tr><td>${esc(p.legajo)}</td><td>${esc(p.apellido)}, ${esc(p.nombre)}</td><td>${esc(p.sector || '–')}</td><td>${fdate(u.fecha)}</td>
+    <table class="r-att"><thead><tr><th>DNI / legajo</th><th>Apellido y nombre</th><th>Sector</th><th>Última</th><th>Resultado</th><th>Estado</th><th>Vence</th><th>Vigencia</th></tr></thead>
+      <tbody>${pers.map(p => { const u = p.ultimo; return `<tr><td>${esc(idCorto(p))}</td><td>${esc(p.apellido)}, ${esc(p.nombre)}</td><td>${esc(p.sector || '–')}</td><td>${fdate(u.fecha)}</td>
         <td>${u.porcentaje != null ? u.porcentaje + ' %' : '–'}</td><td>${esc(u.estado)}</td><td>${p.vig.vence ? fmtDate(p.vig.vence) : '–'}</td><td><span class="vg ${vigCls(p.vig.estado)}">${esc(p.vig.estado)}</span></td></tr>`; }).join('')}</tbody></table>
     ${e.nominaN ? `<h2 class="r-h2">Pendientes de la nómina (${e.pendientes.length})</h2>
-      ${e.pendientes.length ? `<table class="r-att"><thead><tr><th>Legajo</th><th>Apellido y nombre</th><th>Sector</th><th>Situación</th></tr></thead><tbody>${e.pendientes.map(n => { const p = e.personas.find(x => x.legajo === String(n.legajo).toUpperCase());
-        return `<tr><td>${esc(n.legajo)}</td><td>${esc(n.apellido || '')}${n.nombre ? ', ' + esc(n.nombre) : ''}</td><td>${esc(n.sector || '–')}</td><td>${p ? (p.vig.estado === 'vencido' ? 'Certificado vencido' : 'Sin aprobar') : 'Sin capacitar'}</td></tr>`; }).join('')}</tbody></table>`
+      ${e.pendientes.length ? `<table class="r-att"><thead><tr><th>DNI / legajo</th><th>Apellido y nombre</th><th>Sector</th><th>Situación</th></tr></thead><tbody>${e.pendientes.map(n => { const p = e.persona ? e.persona(n) : null;
+        return `<tr><td>${esc(idCorto(n))}</td><td>${esc(n.apellido || '')}${n.nombre ? ', ' + esc(n.nombre) : ''}</td><td>${esc(n.sector || '–')}</td><td>${p ? (p.vig.estado === 'vencido' ? 'Certificado vencido' : 'Sin aprobar') : 'Sin capacitar'}</td></tr>`; }).join('')}</tbody></table>`
         : '<p>Toda la nómina tiene la capacitación vigente.</p>'}` : ''}
   </section>`;
 }
