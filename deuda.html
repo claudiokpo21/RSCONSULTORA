@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La deuda de sueño · RS Consultora</title>
+<meta name="description" content="La deuda de sueño · Fatiga y Conducción Segura · RS Consultora.">
+<meta name="theme-color" content="#0f1216">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/sueno.css">
+<script>if(/[?&]sala\b/.test(location.search)){ document.documentElement.classList.add('sala'); addEventListener('keydown', e => { if(e.key === 'Escape' && parent !== window) parent.postMessage('rs-cerrar-actividad', location.origin); }); }</script>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand"><span id="brandMark"></span><div><strong id="brandName">RS CONSULTORA</strong><small>Actividad · la deuda de sueño</small></div></div>
+    <a class="btn ghost sm act-back" href="actividades.html">Actividades</a>
+  </header>
+  <main class="sz">
+<div class="wrap">
+  
+
+  <header class="head">
+    <p class="eyebrow">Sueño · una semana</p>
+    <h1>LA DEUDA DE SUEÑO</h1>
+    <p>Cada hora que falta dormir se suma a una deuda que se arrastra de un día al otro. Marcá cuántas horas dormiste cada noche (arrastrando la barra o con + y −) y mirá cómo crece.</p>
+  </header>
+
+  <section class="panel ctrl" aria-label="Ajustes">
+    <div class="row"><span class="lbl">Necesito dormir</span>
+      <div class="chips" role="group" aria-label="Horas que necesitás">
+        <button class="chip" id="n7" data-n="7" aria-pressed="false">7 h</button><button class="chip" id="n8" data-n="8" aria-pressed="true">8 h</button><button class="chip" id="n9" data-n="9" aria-pressed="false">9 h</button>
+        <span class="sm" style="color:var(--muted);font-size:.85rem;align-self:center">La mayoría de los adultos necesita entre 7 y 9 horas <sup class="ref">[13]</sup></span></div></div>
+    <div class="row"><span class="lbl">Probá con</span>
+      <div class="chips" role="group" aria-label="Ejemplos de semana">
+        <button class="chip" id="pExtras" data-p="extras" aria-pressed="true">Semana con horas extras</button><button class="chip" id="pRot" data-p="rot" aria-pressed="false">Turnos rotativos</button><button class="chip" id="pIdeal" data-p="ideal" aria-pressed="false">Semana ideal</button></div></div>
+  </section>
+
+  <div class="lay">
+    <section class="panel bars" aria-label="Horas dormidas por noche">
+      <svg id="cv" viewBox="0 0 760 430" role="img" aria-label="Barras con las horas dormidas cada noche de la semana"></svg>
+      <div class="steps" id="steps"></div>
+      <div class="legend" style="margin-top:8px">
+        <span><i style="background:var(--steel)"></i>Horas dormidas</span>
+        <span><i style="background:rgba(229,72,77,.6)"></i>Horas que faltaron</span>
+        <span><i style="background:rgba(47,179,109,.35)"></i>Lo recomendado (7 a 9 h)</span>
+        <span><i style="background:transparent;border-top:2px dashed #5fd497;border-radius:0;height:0;width:16px"></i>Lo que necesitás (<b id="lgN">8</b> h)</span>
+      </div>
+    </section>
+    <div class="col">
+      <section class="panel now" aria-live="polite" id="res"></section>
+      <section class="panel acum" aria-label="Deuda acumulada día por día">
+        <p class="eyebrow">Deuda acumulada, día por día</p>
+        <svg id="cv2" viewBox="0 0 520 240" role="img" aria-label="Línea de la deuda acumulada durante la semana"></svg>
+      </section>
+    </div>
+  </div>
+
+  <div class="facts">
+    <section class="panel"><h3>No te das cuenta</h3><p>En un estudio, quienes durmieron 6 horas por noche durante dos semanas rindieron tan mal como después de una o dos noches sin dormir, pero sentían que estaban bien <sup class="ref">[14]</sup>.</p></section>
+    <section class="panel"><h3>El fin de semana no alcanza</h3><p>Dormir de más ayuda, pero el rendimiento tarda varios días en recuperarse después de una semana de dormir poco <sup class="ref">[15]</sup>. La deuda no se paga en una sola noche.</p></section>
+    <section class="panel"><h3>Y el reloj baja</h3><p>Con deuda de sueño, las caídas de la madrugada y de después del almuerzo son más profundas: más riesgo de microsueño al volante <sup class="ref">[3]</sup>.</p></section>
+  </div>
+
+  <div class="motto"><span aria-hidden="true">●</span> Dormir no es perder el tiempo: es una medida de seguridad. Si la semana viene cargada, planificá pausas y avisá antes de manejar cansado.</div>
+
+  <section class="refs" aria-label="Referencias">
+    <p class="eyebrow">Referencias</p>
+    <ol>
+      <li><b>[3]</b><div><span>Cardinali, D. P. et al. (2007). Trastornos del sueño y seguridad vial: un tema no resuelto. <i>Encrucijadas</i>, 42. Universidad de Buenos Aires.</span> <a href="http://repositoriouba.sisbi.uba.ar/gsdl/collect/encruci/index/assoc/HWA_328.dir/328.PDF" target="_blank" rel="noopener">Ver PDF</a></div></li>
+      <li><b>[13]</b><div><span>Hirshkowitz, M. et al. (2015). National Sleep Foundation's sleep time duration recommendations. <i>Sleep Health</i>, 1(1), 40-43.</span> <a href="https://doi.org/10.1016/j.sleh.2014.12.010" target="_blank" rel="noopener">Ver artículo</a></div></li>
+      <li><b>[14]</b><div><span>Van Dongen, H. P. A. et al. (2003). The cumulative cost of additional wakefulness. <i>Sleep</i>, 26(2), 117-126.</span> <a href="https://pubmed.ncbi.nlm.nih.gov/12683469/" target="_blank" rel="noopener">Ver resumen</a></div></li>
+      <li><b>[15]</b><div><span>Belenky, G. et al. (2003). Patterns of performance degradation and restoration during sleep restriction and subsequent recovery. <i>Journal of Sleep Research</i>, 12(1), 1-12.</span> <a href="https://pubmed.ncbi.nlm.nih.gov/12603781/" target="_blank" rel="noopener">Ver resumen</a></div></li>
+    </ol>
+    <p class="src">Las semanas de ejemplo son ilustrativas. La deuda se calcula como la suma de las horas que faltaron respecto de lo que necesitás; dormir de más la reduce en el papel, pero el cuerpo tarda más en recuperarse.</p>
+  </section>
+</div>
+
+  </main>
+</div>
+<script src="assets/supabase.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/content.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/deuda.js"></script>
+</body>
+</html>

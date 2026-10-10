@@ -1,6 +1,6 @@
 'use strict';
 /* offline.js — "USAR SIN INTERNET" (presentación y videos)
-   Descarga en este navegador la presentación y los 6 videos para poder dar la capacitación sin
+   Descarga en este navegador la presentación y los 10 videos para poder dar la capacitación sin
    conexión. Funciona con sw.js (service worker). Conviene hacerlo el día anterior, con buena señal.
    Sin internet NO funcionan: el desafío en vivo, el control remoto ni el envío de resultados.
    RS Consultora · Fatiga y Conducción Segura */
@@ -16,6 +16,7 @@ const Offline = (() => {
     document.querySelectorAll('script[src],link[rel=stylesheet][href],link[rel=icon][href]').forEach(el => set.add(el.getAttribute('src') || el.getAttribute('href')));
     (CONFIG.consultora && CONFIG.consultora.logo && !/^data:/.test(CONFIG.consultora.logo)) && set.add(CONFIG.consultora.logo);
     (typeof VIDEOS_PRES !== 'undefined' ? VIDEOS_PRES : []).forEach(v => set.add(v.src.replace(/\.mp4$/, '.jpg')));
+    (typeof ACT_ARCHIVOS !== 'undefined' ? ACT_ARCHIVOS : []).forEach(f => set.add(f));   // actividades interactivas
     return [...set];
   }
   const videos = () => (typeof VIDEOS_PRES !== 'undefined' ? VIDEOS_PRES : []).map(v => new URL(v.src, location.href).href);

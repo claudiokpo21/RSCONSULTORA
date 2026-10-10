@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Turno noche y vuelta a casa · RS Consultora</title>
+<meta name="description" content="Turno noche y vuelta a casa · Fatiga y Conducción Segura · RS Consultora.">
+<meta name="theme-color" content="#0f1216">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/sueno.css">
+<script>if(/[?&]sala\b/.test(location.search)){ document.documentElement.classList.add('sala'); addEventListener('keydown', e => { if(e.key === 'Escape' && parent !== window) parent.postMessage('rs-cerrar-actividad', location.origin); }); }</script>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand"><span id="brandMark"></span><div><strong id="brandName">RS CONSULTORA</strong><small>Actividad · turno noche y vuelta a casa</small></div></div>
+    <a class="btn ghost sm act-back" href="actividades.html">Actividades</a>
+  </header>
+  <main class="sz">
+<div class="wrap">
+  
+
+  <header class="head">
+    <p class="eyebrow">Turnos · ritmo circadiano</p>
+    <h1>TURNO NOCHE Y VUELTA A CASA</h1>
+    <p>Después de un turno nocturno, el viaje de regreso suele caer cuando el cuerpo está en su punto más bajo y después de muchas horas despierto. Elegí el turno, a qué hora te levantaste y cuánto dura el viaje.</p>
+  </header>
+
+  <section class="panel ctrl" aria-label="Ajustes">
+    <div class="row"><span class="lbl">Turno</span><div class="chips" role="group" aria-label="Turno" id="cTurno"></div></div>
+    <div class="row"><span class="lbl">Me levanté a las</span><div class="chips" role="group" aria-label="Hora en que te levantaste" id="cDesp"></div></div>
+    <div class="row"><span class="lbl">Viaje a casa</span><div class="chips" role="group" aria-label="Duración del viaje a casa" id="cViaje"></div></div>
+  </section>
+
+  <section class="panel tl" aria-label="Línea de tiempo">
+    <svg id="cv" viewBox="0 0 1000 400" role="img" aria-label="Línea de tiempo de 36 horas con el nivel de alerta, el turno y el viaje a casa"></svg>
+    <div class="legend">
+      <span><i style="background:var(--amber)"></i>Nivel de alerta</span>
+      <span><i style="background:rgba(107,149,232,.7)"></i>Turno de trabajo</span>
+      <span><i style="background:#e5484d"></i>Manejo a casa</span>
+      <span><i style="background:rgba(229,72,77,.3)"></i>Madrugada (mayor somnolencia) <sup class="ref">[12]</sup></span>
+    </div>
+  </section>
+
+  <div class="lay">
+    <section class="panel res now" id="res" aria-live="polite"></section>
+    <section class="panel">
+      <p class="eyebrow">Qué hacer</p>
+      <ul class="list">
+        <li><b>Descansar antes del turno</b>, no solo la noche anterior: llegar a la noche con menos horas despierto.</li>
+        <li><b>Si podés, que no manejes vos:</b> transporte de la empresa, compartir el viaje o un relevo.</li>
+        <li><b>Antes de salir, revisá las señales:</b> bostezos, párpados pesados, cabeceos. Si aparecen, descansá antes de manejar.</li>
+        <li><b>Comunicá</b> si no estás en condiciones: es parte de trabajar seguro.</li>
+        <li><b>La organización</b> puede planificar turnos y rotaciones, ofrecer traslados y un lugar para descansar <sup class="ref">[9]</sup>.</li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="motto"><span aria-hidden="true">●</span> El último tramo del día también es parte del trabajo: volver a casa seguro es el objetivo.</div>
+
+  <section class="refs" aria-label="Referencias">
+    <p class="eyebrow">Referencias</p>
+    <ol>
+      <li><b>[3]</b><div><span>Cardinali, D. P. et al. (2007). Trastornos del sueño y seguridad vial: un tema no resuelto. <i>Encrucijadas</i>, 42. Universidad de Buenos Aires.</span> <a href="http://repositoriouba.sisbi.uba.ar/gsdl/collect/encruci/index/assoc/HWA_328.dir/328.PDF" target="_blank" rel="noopener">Ver PDF</a></div></li>
+      <li><b>[9]</b><div><span>Agencia Nacional de Seguridad Vial, Observatorio Vial Nacional (2021). Dossier N.º 5: Fatiga y estrés en la conducción de vehículos.</span> <a href="https://www.argentina.gob.ar/sites/default/files/2022/04/ansv_ov_dossier_investigacion_n5.pdf" target="_blank" rel="noopener">Ver PDF</a></div></li>
+      <li><b>[10]</b><div><span>Dawson, D. y Reid, K. (1997). Fatigue, alcohol and performance impairment. <i>Nature</i>, 388, 235.</span> <a href="https://doi.org/10.1038/40775" target="_blank" rel="noopener">Ver artículo</a></div></li>
+      <li><b>[12]</b><div><span>Horne, J. y Reyner, L. (1995). Sleep related vehicle accidents. <i>BMJ</i>, 310(6979), 565-567.</span> <a href="https://www.bmj.com/content/310/6979/565" target="_blank" rel="noopener">Ver artículo</a></div></li>
+    </ol>
+    <p class="src">Curva ilustrativa: combina el reloj del cuerpo con el cansancio que se acumula con las horas despierto. No son valores medidos y cambian según cada persona.</p>
+  </section>
+</div>
+
+  </main>
+</div>
+<script src="assets/supabase.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/content.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/turno.js"></script>
+</body>
+</html>

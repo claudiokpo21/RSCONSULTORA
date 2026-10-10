@@ -1,0 +1,34 @@
+/* manejar.css — Juego «Manejá vos» · RS Consultora */
+.act-main{max-width:760px;padding-top:22px}
+html.sala .topbar{display:none}
+html.sala .act-main{max-width:none;padding:14px}
+.mv-game{position:relative;height:calc(100dvh - 92px);min-height:440px;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:#0b1210;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+html.sala .mv-game{height:calc(100dvh - 28px);max-width:min(100%,calc((100dvh - 28px) * .8));margin:0 auto}
+.mv-cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.mv-hud{position:absolute;top:10px;left:10px;right:10px;display:grid;grid-template-columns:1fr 1fr auto;gap:8px;pointer-events:none}
+.mv-box{background:rgba(10,12,15,.78);border:1px solid var(--line);border-radius:12px;padding:7px 10px;line-height:1.2;min-width:0}
+.mv-box small{display:block;color:var(--muted);font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.mv-box b{font-size:1.05rem}
+.mv-bar{height:8px;border-radius:99px;background:#2a313a;overflow:hidden;margin-top:5px}
+.mv-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--green);transition:background .3s}
+.mv-bar i.mid{background:var(--amber)}.mv-bar i.bad{background:var(--red)}
+.mv-toast{position:absolute;left:50%;top:86px;transform:translate(-50%,-10px);opacity:0;background:rgba(245,179,1,.95);color:#14161a;font-weight:800;padding:9px 16px;border-radius:12px;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis;transition:opacity .25s,transform .25s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.mv-toast.on{opacity:1;transform:translate(-50%,0)}
+.mv-toast.red{background:rgba(229,72,77,.95);color:#fff}
+.mv-stop{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:3;display:none;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:mvPulse 1s ease-in-out infinite}
+.mv-stop.on{display:inline-flex}
+.mv-hint{position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:space-between;padding:0 14px;pointer-events:none;color:rgba(255,255,255,.55);font-weight:800;font-size:.85rem}
+.mv-hint span{background:rgba(0,0,0,.45);padding:6px 10px;border-radius:10px}
+.mv-rest{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:rgba(6,20,13,.82);z-index:4;padding:20px}
+.mv-rest.on{display:grid}
+.mv-rest h2{font-size:1.5rem;color:#5fd497;margin:8px 0 6px}
+.mv-rest .mv-bar{width:220px;margin:14px auto 0;height:10px}
+.mv-rest .mv-bar i{background:#5fd497;transition:none}
+.mv-fin .mv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.mv-fin .mv-stats div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+.mv-fin .mv-stats b{display:block;font-size:1.5rem}
+.mv-fin .mv-stats span{font-size:.78rem;color:var(--muted)}
+.mv-veh{display:flex;gap:10px;margin:16px 0 4px;flex-wrap:wrap}
+@keyframes mvPulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.05)}}
+@media (max-width:520px){ .mv-fin .mv-stats{grid-template-columns:repeat(2,1fr)} .mv-box b{font-size:.95rem} }
+@media (prefers-reduced-motion:reduce){ .mv-stop{animation:none} .mv-toast{transition:none} }

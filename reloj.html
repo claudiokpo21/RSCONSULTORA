@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>El reloj del cuerpo · RS Consultora</title>
+<meta name="description" content="El reloj del cuerpo · Fatiga y Conducción Segura · RS Consultora.">
+<meta name="theme-color" content="#0f1216">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/sueno.css">
+<script>if(/[?&]sala\b/.test(location.search)){ document.documentElement.classList.add('sala'); addEventListener('keydown', e => { if(e.key === 'Escape' && parent !== window) parent.postMessage('rs-cerrar-actividad', location.origin); }); }</script>
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand"><span id="brandMark"></span><div><strong id="brandName">RS CONSULTORA</strong><small>Actividad · el reloj del cuerpo</small></div></div>
+    <a class="btn ghost sm act-back" href="actividades.html">Actividades</a>
+  </header>
+  <main class="sz">
+<div class="wrap">
+  
+
+  <header class="head">
+    <p class="eyebrow">Ritmo circadiano · somnolencia</p>
+    <h1>EL RELOJ DEL CUERPO</h1>
+    <p>El cuerpo tiene un reloj interno de unas 24 horas que sube y baja el nivel de alerta, aunque hayas dormido <sup class="ref">[3]</sup>. Mové la línea por las horas del día y probá qué pasa con un almuerzo abundante o una mala noche.</p>
+  </header>
+
+  <section class="panel chart" aria-label="Nivel de alerta durante las 24 horas">
+    <svg id="cv" viewBox="0 0 1000 380" role="img" aria-labelledby="cvT"><title id="cvT">Curva del nivel de alerta a lo largo del día, con dos franjas de mayor somnolencia: la madrugada y el comienzo de la tarde</title></svg>
+    <label for="hora" class="sr" style="position:absolute;left:-9999px">Hora del día</label>
+    <input id="hora" class="range" type="range" min="0" max="23.75" step="0.25" value="14.5">
+    <div class="legend">
+      <span><i style="background:rgba(229,72,77,.35)"></i>Franjas de mayor somnolencia (aprox.) <sup class="ref">[12]</sup></span>
+      <span><i style="background:var(--amber)"></i>Nivel de alerta</span>
+      <span><i style="background:rgba(107,149,232,.55)"></i>Tu viaje</span>
+    </div>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel ctrl" aria-label="Ajustes">
+        <div class="row"><span class="lbl">Almuerzo</span>
+          <div class="chips" role="group" aria-label="Almuerzo"><button class="chip" id="mLiv" data-g="comida" data-v="liviano" aria-pressed="true">Liviano</button><button class="chip" id="mAbu" data-g="comida" data-v="abundante" aria-pressed="false">Abundante</button></div></div>
+        <div class="row"><span class="lbl">Anoche dormí</span>
+          <div class="chips" role="group" aria-label="Sueño de la noche anterior"><button class="chip" id="sBien" data-g="sueno" data-v="bien" aria-pressed="true">Bien</button><button class="chip" id="sPoco" data-g="sueno" data-v="poco" aria-pressed="false">Poco</button></div></div>
+        <div class="row"><span class="lbl">Salgo a las</span>
+          <div class="chips" role="group" aria-label="Hora de salida"></div></div>
+        <div class="row"><span class="lbl">El viaje dura</span>
+          <div class="chips" role="group" aria-label="Duración del viaje"></div></div>
+        <div class="trip-msg" id="trip" aria-live="polite"></div>
+      </section>
+      <section class="panel now" id="now" aria-live="polite"></section>
+    </div>
+
+    <section class="panel dig" aria-label="Digestión y somnolencia">
+      <p class="eyebrow">Digestión</p>
+      <h2>¿Por qué da sueño después de comer? <sup class="ref">[9] [12]</sup></h2>
+      <ol>
+        <li><div><b>Es parte del reloj</b><span>Al comienzo de la tarde el reloj interno baja la alerta. Ese «bajón» aparece aunque no hayas comido.</span></div></li>
+        <li><div><b>La comida lo agranda</b><span>Una comida abundante, con muchas grasas o harinas, suma pesadez y somnolencia mientras el cuerpo hace la digestión.</span></div></li>
+        <li><div><b>Mala noche, bajón más fuerte</b><span>Si dormiste poco, las dos caídas del día se hacen más profundas y llegan antes.</span></div></li>
+      </ol>
+      <div class="do"><b>Qué hacer si manejás después de comer</b>
+        <ul><li>Comé liviano y tomá agua.</li><li>Si podés, evitá planificar tramos largos en esa franja.</li><li>Ante la primera señal de sueño: detenerse en un lugar seguro, comunicar y descansar.</li><li>El café o el energizante no reemplazan el descanso. Nunca alcohol si vas a manejar.</li></ul>
+      </div>
+    </section>
+  </div>
+
+  <div class="motto"><span aria-hidden="true">●</span> Conocer el reloj del cuerpo ayuda a planificar: las horas de mayor riesgo se manejan con más pausas, o se evitan.</div>
+
+  <section class="refs" aria-label="Referencias">
+    <p class="eyebrow">Referencias</p>
+    <ol>
+      <li><b>[3]</b><div><span>Cardinali, D. P. et al. (2007). Trastornos del sueño y seguridad vial: un tema no resuelto. <i>Encrucijadas</i>, 42. Universidad de Buenos Aires.</span> <a href="http://repositoriouba.sisbi.uba.ar/gsdl/collect/encruci/index/assoc/HWA_328.dir/328.PDF" target="_blank" rel="noopener">Ver PDF</a></div></li>
+      <li><b>[9]</b><div><span>Agencia Nacional de Seguridad Vial, Observatorio Vial Nacional (2021). Dossier N.º 5: Fatiga y estrés en la conducción de vehículos.</span> <a href="https://www.argentina.gob.ar/sites/default/files/2022/04/ansv_ov_dossier_investigacion_n5.pdf" target="_blank" rel="noopener">Ver PDF</a></div></li>
+      <li><b>[12]</b><div><span>Horne, J. y Reyner, L. (1995). Sleep related vehicle accidents. <i>BMJ</i>, 310(6979), 565-567. Los siniestros por somnolencia se concentran en la madrugada y a primera hora de la tarde.</span> <a href="https://www.bmj.com/content/310/6979/565" target="_blank" rel="noopener">Ver artículo</a></div></li>
+    </ol>
+    <p class="src">Curva ilustrativa: muestra la tendencia general del ritmo circadiano, no valores medidos. Cambia según cada persona, su sueño y su turno. Los números de referencia son los mismos de la bibliografía de la plataforma.</p>
+  </section>
+</div>
+
+  </main>
+</div>
+<script src="assets/supabase.js"></script>
+<script src="assets/config.js"></script>
+<script src="assets/content.js"></script>
+<script src="assets/common.js"></script>
+<script src="assets/reloj.js"></script>
+</body>
+</html>

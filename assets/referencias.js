@@ -27,7 +27,15 @@ const BIBLIO = [
   { n:10, cita:'Dawson, D. y Reid, K. (1997). Fatigue, alcohol and performance impairment. Nature, 388, 235.',
     url:'https://doi.org/10.1038/40775', uso:'17 horas despierto equivalen a 0,05 % de alcohol en sangre (0,5 g/l) y 24 horas a 0,10 % (1 g/l): actividad «¿Cuántas horas llevás despierto?» (pantalla 7) y afiche.' },
   { n:11, cita:'Centers for Disease Control and Prevention, NIOSH. Training for nurses on shift work and long work hours: impairment from fatigue.',
-    url:'https://archive.cdc.gov/www_cdc_gov/niosh/emres/longhourstraining/impaired.html', uso:'Confirma la equivalencia entre horas despierto y alcohol en sangre (pantalla 7 y afiche).' }
+    url:'https://archive.cdc.gov/www_cdc_gov/niosh/emres/longhourstraining/impaired.html', uso:'Confirma la equivalencia entre horas despierto y alcohol en sangre (pantalla 7 y afiche).' },
+  { n:12, cita:'Horne, J. y Reyner, L. (1995). Sleep related vehicle accidents. BMJ, 310(6979), 565-567.',
+    url:'https://www.bmj.com/content/310/6979/565', uso:'Los siniestros por somnolencia se concentran en la madrugada y a primera hora de la tarde: actividades «El reloj del cuerpo» y «Turno noche y vuelta a casa».' },
+  { n:13, cita:'Hirshkowitz, M. et al. (2015). National Sleep Foundation\'s sleep time duration recommendations. Sleep Health, 1(1), 40-43.',
+    url:'https://doi.org/10.1016/j.sleh.2014.12.010', uso:'La mayoría de los adultos necesita dormir entre 7 y 9 horas: actividad «La deuda de sueño».' },
+  { n:14, cita:'Van Dongen, H. P. A. et al. (2003). The cumulative cost of additional wakefulness. Sleep, 26(2), 117-126.',
+    url:'https://pubmed.ncbi.nlm.nih.gov/12683469/', uso:'Dormir 6 horas por noche durante dos semanas deteriora el rendimiento como una o dos noches sin dormir, sin que la persona lo note: «La deuda de sueño».' },
+  { n:15, cita:'Belenky, G. et al. (2003). Patterns of performance degradation and restoration during sleep restriction and subsequent recovery. Journal of Sleep Research, 12(1), 1-12.',
+    url:'https://pubmed.ncbi.nlm.nih.gov/12603781/', uso:'El rendimiento tarda varios días en recuperarse después de dormir poco: «La deuda de sueño».' }
 ];
 
 const REFS = [

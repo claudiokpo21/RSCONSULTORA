@@ -21,6 +21,14 @@ Plataforma web estática (HTML + CSS + JavaScript, sin compilación), publicada 
 | `referencias.html` | Todos | Fuentes y material de consulta (ANSV, SRT, NHTSA, OMS y leyes). |
 | `privacidad.html` | Todos | Aviso de privacidad (Ley 25.326), enlazado desde el formulario de la evaluación. |
 | `reaccion.html` | Cada participante (celular) o el proyector | **Test de tiempo de reacción**: atento y con simulación de cansancio; muestra los metros recorridos antes de frenar. No guarda datos. Se abre con el QR de la pantalla 10. |
+| `actividades.html` | Todos (celular o proyector) | **Menú de actividades interactivas**, con QR y botón de WhatsApp. Enlazado desde el pie del inicio. |
+| `riesgos.html` | Grupo (proyector) o cada participante | **Encontrá los riesgos**: dibujo de una cabina a las 3 de la mañana con 10 factores de fatiga escondidos y un cartel que es la solución. |
+| `conductor.html` | Grupo (proyector) | **El conductor cansado**: dibujo de un conductor que pasa de «Descansado» a «Con fatiga»; se toca cada parte del cuerpo para ver sus señales. |
+| `ruta.html` | Grupo (proyector) | **La ruta se apaga**: animación de un viaje de noche; la barra de fatiga oscurece y desenfoca la escena, suma parpadeos, desvíos y un microsueño. «Detenerse y descansar» lo resuelve. |
+| `reloj.html` | Grupo (proyector) | **El reloj del cuerpo**: curva de alerta de las 24 horas (ritmo circadiano), con almuerzo liviano o abundante, noche buena o mala y planificador de viaje. Explica la somnolencia después de comer. |
+| `deuda.html` | Grupo o cada participante | **La deuda de sueño**: horas dormidas en la semana y deuda acumulada día por día. |
+| `turno.html` | Grupo (proyector) | **Turno noche y vuelta a casa**: línea de 36 horas con el turno, el viaje de regreso y las horas despierto (17 h ≈ 0,5 g/l; 24 h ≈ 1 g/l). |
+| `manejar.html` | Cada participante (celular) | **Juego Manejá vos**: 400 km de noche manteniéndose en el carril mientras sube la fatiga; en los paradores se puede descansar. |
 | `afiche.html` | Todos | **Afiche de una hoja** con las claves (señales, qué hacer, horarios de riesgo, mitos, 17 h despierto ≈ 0,5 g/l). Para imprimir o compartir por WhatsApp. |
 | `control.html` | Capacitador (su celular) | **Control remoto**: pasa las pantallas de la presentación, pone la pantalla en pausa y maneja el desafío en vivo (comenzar, mostrar resultado, siguiente, QR de la evaluación). Ve la respuesta correcta y la explicación para comentar. |
 | `verificar.html` | Cualquiera | Verifica una constancia con su código (o escaneando el QR impreso). |
@@ -143,14 +151,18 @@ Mientras no se ejecute, el sistema funciona en **modo compatible**: tablero, map
 
 ## Videos con voz
 
-Videos animados (≈ 1 minuto, Full HD, voz masculina, sin subtítulos) en las pantallas con mucho texto. En la pantalla aparece **▶ Video**; se abre a pantalla completa y se cierra al terminar, con **Esc** o con la ✕. Tecla **V**: abrir / pausar. Desde el **control remoto**: Reproducir, Pausar y Cerrar video.
+Seis videos animados (≈ 1 minuto, Full HD, voz masculina, sin subtítulos) y cuatro videos filmados con conductores reales (30 a 50 segundos, 640 × 360, con voz). En la pantalla aparece **▶ Video**; se abre a pantalla completa y se cierra al terminar, con **Esc** o con la ✕. Tecla **V**: abrir / pausar. Desde el **control remoto**: Reproducir, Pausar y Cerrar video.
 
 | Pantalla | Video | Archivo |
 |---|---|---|
 | 3 · ¿Qué es la fatiga? | ¿Qué es la fatiga? | `videos/v1-que-es-la-fatiga.mp4` |
+| 4 · Cansancio, fatiga y somnolencia | Somnolencia al volante | `videos/v7-somnolencia-al-volante.mp4` |
 | 5 · Factores de riesgo | ¿Qué favorece la fatiga? | `videos/v2-factores-de-riesgo.mp4` |
+| 7 · Sueño y conducción | Sueño y descanso | `videos/v8-sueno-y-descanso.mp4` |
 | 9 · Señales de alerta | Señales de alerta | `videos/v3-senales-de-alerta.mp4` |
+| 10 · Microsueño | Microsueño al volante | `videos/v9-microsueno.mp4` |
 | 11 · Vehículos livianos | Livianos y pesados | `videos/v4-livianos-y-pesados.mp4` |
+| 12 · Vehículos pesados | Fatiga en vehículos pesados | `videos/v10-fatiga-en-pesados.mp4` |
 | 17 · Qué hacer ante la fatiga | Si aparece la fatiga | `videos/v6-que-hacer.mp4` |
 | 18 · Prevención | Prevenir la fatiga | `videos/v5-prevencion.mp4` |
 
@@ -164,6 +176,7 @@ Datos y recomendaciones del Observatorio Vial Nacional de la ANSV (Dossier N.º 
 
 - **¿Cuántas horas llevás despierto?** (pantalla 7): 17 h ≈ 0,5 g/l y 24 h ≈ 1 g/l de alcohol en sangre (Dawson y Reid, 1997; CDC/NIOSH).
 - **Test de reacción** (`reaccion.html`, QR en la pantalla 10).
+- **Dibujos y juego** (`riesgos.html`, `conductor.html`, `ruta.html`, `manejar.html`, `reloj.html`, `deuda.html`, `turno.html`; estilos de los tres gráficos en `assets/sueno.css`): se abren desde la presentación con el botón «Actividad» (o la tecla **A**) en las pantallas 5, 7, 8, 9, 12, 17 y 19, a pantalla completa y sin salir de la presentación (Esc o ✕ para volver). Las de celular muestran su QR. Todas están en `actividades.html`, funcionan sin internet si se descargó la presentación y no guardan datos. Para moverlas de pantalla: `ACT_PRES` en `assets/actividades-pres.js`.
 - **Afiche** (`afiche.html`): enlazado desde el cierre de la presentación, el resultado de la evaluación, el inicio y Administración.
 - **Bibliografía de los datos** en Referencias: cada cifra de la presentación lleva su número de fuente [n].
 
@@ -187,7 +200,7 @@ Cada tema de la evaluación tiene 2 versiones (`assets/banco.js`). En cada inten
 
 ## Modo sin internet
 
-En la presentación, el botón con la flecha hacia abajo (**Usar sin internet**) descarga la presentación y los 6 videos (≈ 16 MB) en ese navegador. Hacerlo el día anterior o al llegar, con buena señal y desde el mismo navegador que se va a usar. Si se corta la conexión, recargar la página: sigue funcionando. Sin internet no funcionan el desafío en vivo, el control remoto ni el envío de resultados.
+En la presentación, el botón con la flecha hacia abajo (**Usar sin internet**) descarga la presentación y los 10 videos (≈ 26 MB) en ese navegador. Hacerlo el día anterior o al llegar, con buena señal y desde el mismo navegador que se va a usar. Si se corta la conexión, recargar la página: sigue funcionando. Sin internet no funcionan el desafío en vivo, el control remoto ni el envío de resultados.
 
 Funciona con `sw.js` (service worker): páginas y scripts se piden primero a la red, así siempre se ve la última versión publicada; la copia guardada se usa solo si no hay conexión o la red tarda más de 4 segundos. Si se publica un cambio grande, subir `VERSION` en `sw.js`.
 
