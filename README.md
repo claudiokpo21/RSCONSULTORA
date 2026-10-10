@@ -175,7 +175,7 @@ Datos y recomendaciones del Observatorio Vial Nacional de la ANSV (Dossier N.º 
 ## Actividades interactivas y bibliografía
 
 - **¿Cuántas horas llevás despierto?** (pantalla 7): 17 h ≈ 0,5 g/l y 24 h ≈ 1 g/l de alcohol en sangre (Dawson y Reid, 1997; CDC/NIOSH).
-- **Test de reacción** (`reaccion.html`, QR en la pantalla 10).
+- **Test de reacción** (`reaccion.html`, QR en la pantalla 10). El resultado muestra la distancia total para detenerse en un **liviano** o un **pesado con carga**, a 60, 80 o 100 km/h y con piso seco o mojado: reacción medida + 0,5 s de frenos de aire (pesados) + frenado v²/2a, con 6,5 m/s² para livianos (Highway Code [16]) y 4,6 m/s² para pesados (manual CDL de la AAMVA [17]). Incluye «¿Cómo se calcula?».
 - **Dibujos y juego** (`riesgos.html`, `conductor.html`, `ruta.html`, `manejar.html`, `reloj.html`, `deuda.html`, `turno.html`; estilos de los tres gráficos en `assets/sueno.css`): se abren desde la presentación con el botón «Actividad» (o la tecla **A**) en las pantallas 5, 7, 8, 9, 12, 17 y 19, a pantalla completa y sin salir de la presentación (Esc o ✕ para volver). Las de celular muestran su QR. Todas están en `actividades.html`, funcionan sin internet si se descargó la presentación y no guardan datos. Para moverlas de pantalla: `ACT_PRES` en `assets/actividades-pres.js`.
 - **Afiche** (`afiche.html`): enlazado desde el cierre de la presentación, el resultado de la evaluación, el inicio y Administración.
 - **Bibliografía de los datos** en Referencias: cada cifra de la presentación lleva su número de fuente [n].

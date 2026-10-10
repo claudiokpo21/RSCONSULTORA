@@ -174,7 +174,7 @@ function dibujar(){
   }
   // vehículo propio
   const pv = .86, yv = hy + pv * (H - hy), hwv = ancho(pv), xv = centro(pv) + R.u * hwv;
-  faros(xv, yv, hwv, hy, centro, ancho);
+  // (sin haz de faros: a la vista desde atrás confundía)
   R.tipo === 'pesado' ? camion(xv, yv, hwv * .5) : auto(xv, yv, hwv * .44);
   ctx = ctxMain;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -201,10 +201,12 @@ function dibujar(){
   }
 }
 function faros(xv, yv, hwv, hy, centro, ancho){
-  const p2 = .55, y2 = hy + p2 * (H - hy), c2 = centro(p2), w2 = ancho(p2), top = yv - hwv * .55;
-  const g = ctx.createLinearGradient(0, top, 0, y2); g.addColorStop(0, 'rgba(255,241,201,.22)'); g.addColorStop(1, 'rgba(255,241,201,0)');
-  ctx.fillStyle = g; ctx.beginPath();
-  ctx.moveTo(xv - hwv * .25, top); ctx.lineTo(xv + hwv * .25, top); ctx.lineTo(c2 + (xv - centro(.9)) * .3 + w2 * .5, y2); ctx.lineTo(c2 + (xv - centro(.9)) * .3 - w2 * .5, y2); ctx.fill();
+  // Luz de los faros: un resplandor suave sobre el asfalto, delante del vehículo (no un haz en el aire).
+  const p2 = .66, y2 = hy + p2 * (H - hy), x2 = centro(p2) + (xv - centro(.86)) * ancho(p2) / ancho(.86), rx = ancho(p2) * .5, ry = (yv - y2) * .85;
+  ctx.save(); ctx.translate(x2, y2); ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, 'rgba(255,241,201,.2)'); g.addColorStop(.6, 'rgba(255,241,201,.08)'); g.addColorStop(1, 'rgba(255,241,201,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill(); ctx.restore();
 }
 function rr(x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
 function luces(x, y, w, h, k){

@@ -35,7 +35,11 @@ const BIBLIO = [
   { n:14, cita:'Van Dongen, H. P. A. et al. (2003). The cumulative cost of additional wakefulness. Sleep, 26(2), 117-126.',
     url:'https://pubmed.ncbi.nlm.nih.gov/12683469/', uso:'Dormir 6 horas por noche durante dos semanas deteriora el rendimiento como una o dos noches sin dormir, sin que la persona lo note: «La deuda de sueño».' },
   { n:15, cita:'Belenky, G. et al. (2003). Patterns of performance degradation and restoration during sleep restriction and subsequent recovery. Journal of Sleep Research, 12(1), 1-12.',
-    url:'https://pubmed.ncbi.nlm.nih.gov/12603781/', uso:'El rendimiento tarda varios días en recuperarse después de dormir poco: «La deuda de sueño».' }
+    url:'https://pubmed.ncbi.nlm.nih.gov/12603781/', uso:'El rendimiento tarda varios días en recuperarse después de dormir poco: «La deuda de sueño».' },
+  { n:16, cita:'Department for Transport, Reino Unido. The Highway Code, regla 126: distancias típicas de detención.',
+    url:'https://www.gov.uk/guidance/the-highway-code/general-rules-techniques-and-advice-for-all-drivers-and-riders-103-to-158', uso:'Distancias de frenado típicas de un automóvil en piso seco (≈ 6,5 m/s² de desaceleración) y el doble en piso mojado: frenado del «Test de reacción».' },
+  { n:17, cita:'AAMVA. Manual modelo de licencia de conducir comercial (CDL), secciones 2.6 «Controlling speed» y 5 «Air brakes». Estados Unidos.',
+    url:'https://www.laed.uscourts.gov/sites/default/files/pdfs/AAMVA%20-%20CDL%20Manual.pdf', uso:'Camión: unos 216 pies (66 m) de frenado a 55 mph en piso seco (≈ 4,6 m/s²) y 0,5 s de retardo de los frenos de aire: frenado del «Test de reacción».' }
 ];
 
 const REFS = [
