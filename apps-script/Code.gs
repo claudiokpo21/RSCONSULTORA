@@ -21,7 +21,7 @@ const ENCABEZADOS = [
   'Actualizado', 'ID registro', 'Legajo', 'Nombre', 'Apellido', 'Empresa', 'Sector', 'Tipo de vehículo',
   'Fecha', 'Hora de inicio', 'Hora de finalización', 'Duración (min)', 'Cantidad de preguntas',
   'Respuestas correctas', 'Respuestas incorrectas', 'Porcentaje', 'Intentos', 'Estado',
-  'Capacitador', 'Consultora', 'Capacitación', 'Criterio de aprobación (%)'
+  'Capacitador', 'Consultora', 'Capacitación', 'Criterio de aprobación (%)', 'DNI'
 ];
 const ESTADOS = ['APROBADO', 'NO APROBADO', 'SIN COMPLETAR'];
 
@@ -33,7 +33,7 @@ function doPost(e) {
     const p = r.participant || {}, t = r.training || {}, ev = r.evaluation || {};
     const id = texto_(r.id, 40);
     if (!/^REG-[A-Z0-9-]{4,36}$/.test(id)) return respuesta_({ ok: false, error: 'ID inválido' });
-    if (!texto_(p.legajo, 12) || !texto_(p.nombre, 60) || !texto_(p.apellido, 60)) return respuesta_({ ok: false, error: 'Datos incompletos' });
+    if ((!texto_(p.legajo, 12) && !texto_(p.dni, 12)) || !texto_(p.nombre, 60) || !texto_(p.apellido, 60)) return respuesta_({ ok: false, error: 'Datos incompletos' });
 
     const fila = [
       new Date(), id, texto_(p.legajo, 12), texto_(p.nombre, 60), texto_(p.apellido, 60),
@@ -41,7 +41,8 @@ function doPost(e) {
       fecha_(t.fechaInicio, 'dd/MM/yyyy'), fecha_(t.fechaInicio, 'HH:mm'), fecha_(t.fechaFin, 'HH:mm'),
       numero_(t.duracion), numero_(ev.preguntas), numero_(ev.correctas), numero_(ev.incorrectas),
       numero_(ev.porcentaje), numero_(ev.intentos), ESTADOS.indexOf(ev.estado) >= 0 ? ev.estado : 'SIN COMPLETAR',
-      texto_(t.capacitador, 60), texto_(t.consultora, 60), texto_(t.nombre, 120), numero_(ev.criterioAprobacion)
+      texto_(t.capacitador, 60), texto_(t.consultora, 60), texto_(t.nombre, 120), numero_(ev.criterioAprobacion),
+      String(p.dni || '').replace(/\D/g, '').slice(0, 8)
     ];
 
     const hoja = hoja_();
@@ -70,6 +71,11 @@ function hoja_() {
     hoja.appendRow(ENCABEZADOS);
     hoja.getRange(1, 1, 1, ENCABEZADOS.length).setFontWeight('bold').setBackground('#f5b301');
     hoja.setFrozenRows(1);
+  } else if (hoja.getLastColumn() < ENCABEZADOS.length) {
+    // Planilla creada con una versión anterior: agrega los encabezados nuevos (por ejemplo, DNI) al final.
+    const desde = hoja.getLastColumn() + 1;
+    hoja.getRange(1, desde, 1, ENCABEZADOS.length - desde + 1).setValues([ENCABEZADOS.slice(desde - 1)])
+      .setFontWeight('bold').setBackground('#f5b301');
   }
   return hoja;
 }

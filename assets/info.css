@@ -16,3 +16,5 @@
 .doc .refs a{color:#9dbcf5;word-break:break-word}
 .doc .refs p{color:var(--muted);font-size:.92rem;margin-top:4px}
 .doc .back{display:inline-flex;align-items:center;gap:8px;margin-top:26px;color:var(--amber);text-decoration:none;font-weight:600}
+.doc .refs{margin:10px 0 0;padding:0;max-width:none;width:100%}
+.doc .biblio li small{color:var(--amber);font-weight:800}

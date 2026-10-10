@@ -313,7 +313,7 @@ function viewResult(){
       <div><dt>Dictada por</dt><dd>${esc(CONFIG.consultora.nombre)}</dd></div>
       <div><dt>Código de verificación</dt><dd id="verCode">${State.verificacion ? esc(State.verificacion) : '<span class="dim">Se asigna al registrarse</span>'}</dd></div>
     </dl>
-    <div class="actions"><button class="btn green" id="rPrint">${ic('print')} IMPRIMIR / GUARDAR CONSTANCIA</button></div>
+    <div class="actions"><button class="btn green" id="rPrint">${ic('print')} IMPRIMIR / GUARDAR CONSTANCIA</button><a class="btn ghost" href="afiche.html" target="_blank" rel="noopener">${ic('shield')} Afiche con las claves</a></div>
     <p class="sm dim" style="margin-top:8px">En el celular, elegí “Guardar como PDF” en las opciones de impresión.</p>
   </div>` : ''}
   <div class="actions">

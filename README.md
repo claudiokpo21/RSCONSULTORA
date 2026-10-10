@@ -8,7 +8,7 @@ Plataforma web estática (HTML + CSS + JavaScript, sin compilación), publicada 
 | Página | Para quién | Qué hace |
 |---|---|---|
 | `index.html` | Todos | Inicio con acceso a la presentación, el desafío en vivo, la evaluación y el QR. |
-| `capacitacion.html` | Capacitador | Presentación para proyectar (21 pantallas). Sin registro de datos. La última pantalla muestra el QR de la evaluación. Tecla **F** = pantalla completa. |
+| `capacitacion.html` | Capacitador | Presentación para proyectar (22 pantallas, incluida «Estrés al volante»). Sin registro de datos. La última pantalla muestra el QR de la evaluación. Tecla **F** = pantalla completa. |
 | `evaluacion.html` | Cada participante | Identificación, repaso opcional, 10 preguntas, resultado y constancia A4 (en el celular: "Guardar como PDF"). |
 | `vivo.html` | Capacitador (proyección) | **Desafío en vivo**: sala con QR y código, preguntas con temporizador, gráfico de respuestas, posiciones, equipos y podio. Tecla **F** = pantalla completa, **Espacio** = avanzar. |
 | `jugar.html` | Cada participante (celular) | Se une con el QR, elige equipo (Livianos / Pesados) y responde con botones de colores. Ve si acertó, sus puntos y su posición. |
@@ -20,6 +20,8 @@ Plataforma web estática (HTML + CSS + JavaScript, sin compilación), publicada 
 | `guia.html` | Capacitador | **Guía del capacitador** (2 hojas A4): agenda de 90 minutos, checklist del día y qué hacer y decir en cada pantalla. |
 | `referencias.html` | Todos | Fuentes y material de consulta (ANSV, SRT, NHTSA, OMS y leyes). |
 | `privacidad.html` | Todos | Aviso de privacidad (Ley 25.326), enlazado desde el formulario de la evaluación. |
+| `reaccion.html` | Cada participante (celular) o el proyector | **Test de tiempo de reacción**: atento y con simulación de cansancio; muestra los metros recorridos antes de frenar. No guarda datos. Se abre con el QR de la pantalla 10. |
+| `afiche.html` | Todos | **Afiche de una hoja** con las claves (señales, qué hacer, horarios de riesgo, mitos, 17 h despierto ≈ 0,5 g/l). Para imprimir o compartir por WhatsApp. |
 | `control.html` | Capacitador (su celular) | **Control remoto**: pasa las pantallas de la presentación, pone la pantalla en pausa y maneja el desafío en vivo (comenzar, mostrar resultado, siguiente, QR de la evaluación). Ve la respuesta correcta y la explicación para comentar. |
 | `verificar.html` | Cualquiera | Verifica una constancia con su código (o escaneando el QR impreso). |
 
@@ -147,12 +149,23 @@ Videos animados (≈ 1 minuto, Full HD, voz masculina, sin subtítulos) en las p
 |---|---|---|
 | 3 · ¿Qué es la fatiga? | ¿Qué es la fatiga? | `videos/v1-que-es-la-fatiga.mp4` |
 | 5 · Factores de riesgo | ¿Qué favorece la fatiga? | `videos/v2-factores-de-riesgo.mp4` |
-| 8 · Señales de alerta | Señales de alerta | `videos/v3-senales-de-alerta.mp4` |
-| 10 · Vehículos livianos | Livianos y pesados | `videos/v4-livianos-y-pesados.mp4` |
-| 16 · Qué hacer ante la fatiga | Si aparece la fatiga | `videos/v6-que-hacer.mp4` |
-| 17 · Prevención | Prevenir la fatiga | `videos/v5-prevencion.mp4` |
+| 9 · Señales de alerta | Señales de alerta | `videos/v3-senales-de-alerta.mp4` |
+| 11 · Vehículos livianos | Livianos y pesados | `videos/v4-livianos-y-pesados.mp4` |
+| 17 · Qué hacer ante la fatiga | Si aparece la fatiga | `videos/v6-que-hacer.mp4` |
+| 18 · Prevención | Prevenir la fatiga | `videos/v5-prevencion.mp4` |
 
 Para sumar otro: copiar el `.mp4` y su portada `.jpg` en `videos/` y agregar una línea en `assets/videos.js` (`VIDEOS_PRES`).
+
+## Contenido reforzado con la ANSV
+
+Datos y recomendaciones del Observatorio Vial Nacional de la ANSV (Dossier N.º 5, «Fatiga y estrés en la conducción de vehículos», 2021), siempre con su fuente y su año: pantalla nueva **Estrés al volante** (6), datos de Argentina en los objetivos, la equivalencia entre falta de sueño y 0,5 g/l de alcohol en la pantalla del sueño, estudios en camioneros y choferes en vehículos pesados, estiramientos y comidas livianas en prevención, dos preguntas nuevas en el banco (estrés y sueño/alcohol) y medidas para la organización en el informe grupal. Los textos están en `content.js` (`datos` y `estres`).
+
+## Actividades interactivas y bibliografía
+
+- **¿Cuántas horas llevás despierto?** (pantalla 7): 17 h ≈ 0,5 g/l y 24 h ≈ 1 g/l de alcohol en sangre (Dawson y Reid, 1997; CDC/NIOSH).
+- **Test de reacción** (`reaccion.html`, QR en la pantalla 10).
+- **Afiche** (`afiche.html`): enlazado desde el cierre de la presentación, el resultado de la evaluación, el inicio y Administración.
+- **Bibliografía de los datos** en Referencias: cada cifra de la presentación lleva su número de fuente [n].
 
 ## DNI y legajo
 

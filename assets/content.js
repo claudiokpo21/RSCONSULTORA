@@ -147,8 +147,8 @@ const CONTENT = {
     { icon:'check', t:'RETOMAR SOLO CUANDO SEA SEGURO', d:'Retomá únicamente si ya no hay señales de fatiga. Si persisten, no continúes y coordiná alternativas con la base.', cls:'go' }
   ],
   prevencion: {
-    antes: ['Dormir adecuadamente.','Planificar el recorrido.','Revisar duración y horarios.','Considerar pausas.','Evitar iniciar un viaje estando fatigado.'],
-    durante: ['Realizar pausas.','Hidratarse.','Prestar atención a las señales de fatiga.','Informar cualquier condición insegura.','No continuar si existe somnolencia.']
+    antes: ['Dormir adecuadamente.','Planificar el recorrido.','Revisar duración y horarios.','Considerar pausas.','Evitar iniciar un viaje estando fatigado.','Evitar comidas abundantes antes de salir.'],
+    durante: ['Realizar pausas.','Hidratarse.','Prestar atención a las señales de fatiga.','Informar cualquier condición insegura.','Hacer estiramientos en cada pausa.','No continuar si existe somnolencia.']
   },
   plan: {
     escenario:'Tenés que realizar un traslado de aproximadamente 400 km por ruta hasta una locación de trabajo. El viaje es mañana y hoy terminás tu jornada a las 18:00.',
@@ -201,6 +201,36 @@ const CONTENT = {
     { icon:'x', t:'Abrir la ventanilla, subir la radio, el café o los energizantes NO reemplazan el descanso.' },
     { icon:'stop', t:'Ante la fatiga: detenerse en un lugar seguro, comunicar la situación y descansar. Nunca acelerar para compensar.' }
   ],
+  // DATOS DE CONTEXTO — ANSV, Observatorio Vial Nacional: «Fatiga y estrés en la conducción de vehículos»
+  // (Dossier N.º 5, diciembre de 2021). Se muestran siempre con su fuente y su año.
+  datos: {
+    // ref = número de la fuente en la bibliografía (pantalla Referencias).
+    fuente: 'Fuente: ANSV · Observatorio Vial Nacional, Dossier N.º 5 «Fatiga y estrés en la conducción de vehículos» (2021). Bibliografía numerada en Referencias.',
+    contexto: [
+      { n:'99.221', t:'siniestros viales con víctimas en Argentina en 2019', ref:2 },
+      { n:'4.911', t:'personas fallecidas en esos siniestros (2019)', ref:2 },
+      { n:'1,35 millones', t:'de muertes por año en el tránsito en el mundo (OMS, 2018)', ref:1 }
+    ],
+    alcohol: 'Según estudios citados por la ANSV, la falta de sueño produce efectos similares a tener 0,5 g/l de alcohol en sangre [3].',
+    pesados: [
+      { n:'86 %', t:'de 738 camioneros encuestados tenía insuficiencia de sueño (Mercado Central de Buenos Aires, 2005).', ref:4 },
+      { n:'45 %', t:'de esos camioneros dormía menos de 4 horas en los días de semana.', ref:4 },
+      { n:'50 %', t:'del sueño de los choferes de larga distancia se hace fuera de casa: en hoteles o en el vehículo (2019).', ref:5 },
+      { n:'85 % → 66 %', t:'choferes que se sienten en condiciones al empezar y al terminar el viaje (SRT, 2009).', ref:6 }
+    ]
+  },
+  // ESTRÉS AL VOLANTE (pantalla 6). Basado en el Dossier N.º 5 de la ANSV.
+  estres: {
+    def: 'Es la reacción del cuerpo ante una exigencia: se aceleran el corazón y la respiración y el cuerpo se prepara para «luchar o huir». Puede ayudar a reaccionar, pero se vuelve un problema cuando es muy intenso o se prolonga.',
+    efectos: [
+      { icon:'zap', t:'Agresividad', d:'Bocinazos, insultos o «pelear» el lugar en el tránsito. Aumentan los conflictos y las maniobras bruscas.' },
+      { icon:'alert', t:'Imprudencia', d:'Acelerar, adelantarse sin margen o apurarse para «recuperar tiempo».' },
+      { icon:'activity', t:'Impulsividad', d:'Decisiones rápidas sin medir el riesgo: frenadas, volantazos o cambios de carril bruscos.' }
+    ],
+    disparadores: ['Embotellamientos y cortes', 'Calor', 'Cansancio visual', 'Monotonía del recorrido', 'Presión por los horarios', 'Problemas personales'],
+    senales: ['Malhumor e irritabilidad', 'Ansiedad o nervios', 'Corazón acelerado y respiración agitada', 'Ganas de «ganarle» a otro conductor'],
+    hacer: ['Reconocé que estás estresado: ponerle nombre ayuda a controlarlo.', 'No compitas en el tránsito: dejá pasar y aumentá la distancia.', 'Salí con tiempo: el apuro es uno de los mayores generadores de estrés.', 'Si estás muy alterado, detenete en un lugar seguro y hacé una pausa.']
+  },
   quiz: [
     { q:'¿Cuál es la mejor definición de fatiga?', c:1, e:'La fatiga es un estado de cansancio físico y/o mental que disminuye la capacidad de realizar una tarea de manera segura.',
       o:['Una sensación que desaparece al subir el volumen de la radio.','Un estado de cansancio físico y/o mental que disminuye la capacidad de realizar una tarea de manera segura.','Un problema que afecta únicamente a conductores de camiones.','La falta de experiencia al volante.'] },

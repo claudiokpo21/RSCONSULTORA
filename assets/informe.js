@@ -35,6 +35,13 @@ function analizar(data){
     intentos: evaluados.length ? (evaluados.reduce((s, r) => s + (r.intentos || 1), 0) / evaluados.length) : null
   };
 }
+/** Medidas para la empresa recomendadas por la ANSV (Dossier N.º 5). Editables. */
+const RECO_ORG = [
+  'Planificar rotaciones de turnos y recorridos que eviten jornadas prolongadas.',
+  'Promover pausas con estiramientos, hidratación y comidas livianas en los viajes largos.',
+  'Ofrecer capacitación en alimentación y promover la actividad física.',
+  'Evaluar sistemas de detección de fatiga en cabina (sensores de párpados y de posición de la cabeza, con alerta).'
+];
 function conclusion(A){
   if(!A.evaluados.length) return 'Todavía no hay evaluaciones registradas en esta jornada.';
   const p = A.pctAprob, min = CONFIG.aprobacion.porcentajeMinimo;
@@ -133,6 +140,8 @@ function render(data){
 
     <h2 class="r-h2">Conclusión</h2>
     <p class="r-conc">${esc(conclusion(A))}</p>
+    <h3 class="r-h3" style="margin-top:2.5mm">Medidas recomendadas para la organización <small class="r-src">· ANSV, Dossier N.º 5 (2021)</small></h3>
+    <ul class="r-reco">${RECO_ORG.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
     <p class="r-note">Los resultados reflejan la comprensión de los contenidos de la capacitación. No constituyen una evaluación médica ni de aptitud laboral.</p>
 
     <div class="r-sign"><div><span class="line"></span>${esc(j.capacitador)}<br>${esc(CONFIG.consultora.rol)} · ${esc(CONFIG.consultora.nombre)}</div></div>

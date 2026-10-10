@@ -1,0 +1,27 @@
+/* reaccion.css — Test de tiempo de reacción · RS Consultora */
+.rx{position:relative;min-height:calc(100dvh - 120px);border-radius:18px;border:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px;user-select:none;-webkit-user-select:none;touch-action:manipulation;cursor:pointer;overflow:hidden;outline:none}
+.rx-top{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:center}
+.rx-n{color:var(--muted);font-weight:700;font-size:.9rem}
+.rx-luz{width:min(56vw,240px);aspect-ratio:1;border-radius:50%;background:#2a313a;border:6px solid #39424d;transition:background .05s,box-shadow .05s}
+.rx.ya .rx-luz{background:var(--amber);border-color:#ffd25a;box-shadow:0 0 80px rgba(245,179,1,.55)}
+.rx.pronto .rx-luz{background:var(--red);border-color:#ff8a8d}
+.rx-msg{font-size:1.25rem;font-weight:800;text-align:center;min-height:1.6em}
+.rx.ya .rx-msg{color:var(--amber);font-size:1.6rem}
+/* Simulación de cansancio: menos visibilidad */
+.rx.cansado{filter:blur(.6px)}
+.rx.cansado .rx-luz{width:min(40vw,170px);opacity:.75}
+.rx.cansado.ya .rx-luz{background:#b58a14;box-shadow:0 0 30px rgba(245,179,1,.25)}
+.rx-blink{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .08s}
+.rx-blink.on{opacity:.96}
+.rx-notif{position:absolute;top:58px;left:50%;transform:translate(-50%,-180%);opacity:0;display:flex;gap:8px;align-items:center;background:#f3f5f7;color:#14181d;font-weight:700;padding:10px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:transform .25s ease,opacity .2s;pointer-events:none}
+.rx-notif.show{transform:translate(-50%,0);opacity:1}
+.rx-fin h1{font-size:1.6rem;margin:8px 0 6px}
+.rx-barras{display:flex;flex-direction:column;gap:14px;margin:20px 0}
+.rx-barras>div{display:grid;grid-template-columns:150px 1fr auto;gap:12px;align-items:center}
+.rx-barras span{font-weight:700;font-size:.9rem}
+.rx-barras b{font-size:.92rem;white-space:nowrap}
+.rx-b{height:16px;border-radius:99px;background:var(--panel2);overflow:hidden}
+.rx-b i{display:block;height:100%;background:var(--green);border-radius:99px}
+.rx-b.c i{background:var(--red)}
+@media (max-width:560px){ .rx-barras>div{grid-template-columns:1fr auto} .rx-barras .rx-b{grid-column:1/-1;grid-row:2} }
+@media (prefers-reduced-motion:reduce){ .rx-notif{transition:none} .rx-blink{transition:none} }

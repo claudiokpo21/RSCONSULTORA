@@ -5,9 +5,9 @@
 
 const AGENDA = [
   { min:10, t:'Recepción y diagnóstico inicial', d:'Bienvenida. Proyectar el QR del diagnóstico (Administración → Jornadas → Links y QR) mientras la gente se acomoda: 5 preguntas, anónimo.' },
-  { min:40, t:'Presentación (21 pantallas + 6 videos)', d:'Ver el detalle pantalla por pantalla en la hoja 2. Usar el control remoto desde el celular.' },
-  { min:15, t:'Desafío en vivo', d:'Abrir el desafío desde la pantalla 20 (o con el link de la jornada). Esperar a que entren todos antes de comenzar. 10 preguntas, resumen del grupo y podio.' },
-  { min:15, t:'Evaluación individual', d:'QR de la evaluación (pantalla 21 o podio del desafío). Firma, 10 preguntas, constancia y opinión. Recorrer el salón para ayudar.' },
+  { min:40, t:'Presentación (22 pantallas + 6 videos)', d:'Ver el detalle pantalla por pantalla en la hoja 2. Usar el control remoto desde el celular.' },
+  { min:15, t:'Desafío en vivo', d:'Abrir el desafío desde la pantalla 21 (o con el link de la jornada). Esperar a que entren todos antes de comenzar. 10 preguntas, resumen del grupo y podio.' },
+  { min:15, t:'Evaluación individual', d:'QR de la evaluación (pantalla 22 o podio del desafío). Firma, 10 preguntas, constancia y opinión. Recorrer el salón para ayudar.' },
   { min:10, t:'Cierre', d:'Dudas, mensaje final: «Detenerse a tiempo también es seguridad». Recordar que en 30 días llega el refuerzo.' }
 ];
 
@@ -17,29 +17,30 @@ const PANTALLAS = [
   [2, 2, 'Tocar los objetivos.', 'Al final van a saber reconocer la fatiga y cuándo detenerse.'],
   [3, 2, '▶ Video «¿Qué es la fatiga?» (0:49). Alternar descansado / fatigado.', 'La fatiga no siempre se siente: hay que reconocerla.'],
   [4, 3, 'Tocar cansancio, fatiga y somnolencia.', 'Preguntar: ¿quién manejó alguna vez con sueño? (a mano alzada).'],
-  [5, 4, '▶ Video «¿Qué favorece la fatiga?» (0:54). Tocar factores.', 'Relacionar con los turnos y horarios reales de la empresa.'],
-  [6, 1, 'Mostrar la cadena del sueño.', 'Dormir no es perder tiempo: es una medida de seguridad.'],
-  [7, 2, 'Tocar las franjas horarias.', 'Madrugada, primeras horas, después del almuerzo y final de jornadas largas.'],
-  [8, 3, '▶ Video «Señales de alerta» (1:05). Juego de señales.', 'El cuerpo avisa antes: el riesgo es ignorar los avisos.'],
-  [9, 3, 'Simulador de microsueño (con sonido): probar 100 km/h y 3 s.', '83 metros sin control. Preguntar: ¿qué hay en 83 metros de su ruta?'],
-  [10, 2, '▶ Video «Livianos y pesados» (0:50). Situaciones de riesgo.', 'Liviano no significa menos riesgo: el regreso a casa después del turno.'],
-  [11, 2, 'Factores de los vehículos pesados.', 'Más masa, más distancia de frenado: menos margen para corregir.'],
-  [12, 1, 'Comparación liviano / pesado.', 'En los dos casos la reacción tardía se suma a la distancia de frenado.'],
-  [13, 3, 'Mito o realidad: que el grupo vote antes de revelar.', 'Café, ventanilla y radio no reemplazan el descanso.'],
-  [14, 2, 'Caso práctico 1: votar a mano alzada y revelar.', 'No existe una distancia «segura» si hay somnolencia.'],
-  [15, 2, 'Caso práctico 2.', 'El horario se reprograma; un incidente, no.'],
-  [16, 2, '▶ Video «Si aparece la fatiga» (0:46). Secuencia de 6 pasos.', 'Comunicar no es un problema: permite reprogramar.'],
-  [17, 2, '▶ Video «Prevenir la fatiga» (0:49). Antes y durante el viaje.', 'Pausas según la política de la empresa.'],
-  [18, 1, 'Planificación de viajes: armar el plan con el grupo.', 'Salir descansado, con tiempo realista y pausas.'],
-  [19, 1, 'Decisión segura: elegir entre todos.', 'Llegar un poco más tarde también es llegar bien.'],
-  [20, 1, 'Cierre de la presentación → «Desafío en vivo».', 'Detenerse a tiempo también es seguridad.'],
-  [21, 0, 'QR de la evaluación (después del desafío).', 'Se aprueba con el ' + CONFIG.aprobacion.porcentajeMinimo + ' % o más.']
+  [5, 3, '▶ Video «¿Qué favorece la fatiga?» (0:54). Tocar factores.', 'Relacionar con los turnos y horarios reales de la empresa.'],
+  [6, 2, 'Estrés al volante: tocar cada efecto y repasar qué lo dispara.', 'El apuro y la presión generan estrés: salir con tiempo es prevenir.'],
+  [7, 2, 'Cadena del sueño y «¿Cuántas horas llevás despierto?»: probar 17 y 24 h.', '17 horas despierto es como manejar con 0,5 g/l de alcohol; 24 horas, con 1 g/l.'],
+  [8, 2, 'Tocar las franjas horarias.', 'Madrugada, primeras horas, después del almuerzo y final de jornadas largas.'],
+  [9, 3, '▶ Video «Señales de alerta» (1:05). Juego de señales.', 'El cuerpo avisa antes: el riesgo es ignorar los avisos.'],
+  [10, 4, 'Simulador de microsueño y test de reacción: que escaneen el QR y comparen sus metros.', '83 metros sin control. Preguntar: ¿qué hay en 83 metros de su ruta?'],
+  [11, 2, '▶ Video «Livianos y pesados» (0:50). Situaciones de riesgo.', 'Liviano no significa menos riesgo: el regreso a casa después del turno.'],
+  [12, 1, 'Factores de los vehículos pesados y datos de camioneros.', 'El 86 % de los camioneros encuestados dormía poco: no es un problema individual.'],
+  [13, 1, 'Comparación liviano / pesado.', 'En los dos casos la reacción tardía se suma a la distancia de frenado.'],
+  [14, 2, 'Mito o realidad: que el grupo vote antes de revelar.', 'Café, ventanilla y radio no reemplazan el descanso.'],
+  [15, 2, 'Caso práctico 1: votar a mano alzada y revelar.', 'No existe una distancia «segura» si hay somnolencia.'],
+  [16, 1, 'Caso práctico 2.', 'El horario se reprograma; un incidente, no.'],
+  [17, 2, '▶ Video «Si aparece la fatiga» (0:46). Secuencia de 6 pasos.', 'Comunicar no es un problema: permite reprogramar.'],
+  [18, 2, '▶ Video «Prevenir la fatiga» (0:49). Antes y durante el viaje.', 'Pausas según la política de la empresa, con estiramientos y comidas livianas.'],
+  [19, 1, 'Planificación de viajes: armar el plan con el grupo.', 'Salir descansado, con tiempo realista y pausas.'],
+  [20, 1, 'Decisión segura: elegir entre todos.', 'Llegar un poco más tarde también es llegar bien.'],
+  [21, 1, 'Cierre de la presentación → «Desafío en vivo».', 'Detenerse a tiempo también es seguridad.'],
+  [22, 0, 'QR de la evaluación (después del desafío).', 'Se aprueba con el ' + CONFIG.aprobacion.porcentajeMinimo + ' % o más.']
 ];
 
 const CHECK = [
   ['El día anterior', ['Crear la jornada en Administración (empresa, lugar, fecha, email de contacto).', 'Abrir la presentación con el link de la jornada y tocar «Usar sin internet» para descargar los videos.', 'Probar el control remoto con el celular.', 'Imprimir esta guía y cargar el celular y la notebook.']],
   ['Al llegar (30 min antes)', ['Proyector y sonido: reproducir 10 segundos de un video.', 'Internet: wifi del lugar o datos del celular compartidos.', 'Abrir la presentación (link de la jornada), pantalla completa (tecla F) y vincular el control remoto.', 'Tener a mano el QR del diagnóstico.']],
-  ['Al terminar', ['Verificar en Administración que estén todos los registros y firmas.', 'Cerrar la jornada.', 'Abrir el informe y compartirlo con el cliente (Compartir con el cliente).', 'Enviar el link del refuerzo a los ' + ((CONFIG.reportes && CONFIG.reportes.refuerzoDias) || 30) + ' días (Jornadas → Links y QR).']],
+  ['Al terminar', ['Verificar en Administración que estén todos los registros y firmas.', 'Compartir el afiche por WhatsApp o dejarlo impreso.', 'Cerrar la jornada.', 'Abrir el informe y compartirlo con el cliente (Compartir con el cliente).', 'Enviar el link del refuerzo a los ' + ((CONFIG.reportes && CONFIG.reportes.refuerzoDias) || 30) + ' días (Jornadas → Links y QR).']],
   ['Si falla internet', ['La presentación y los videos funcionan sin conexión si se descargaron antes.', 'El desafío en vivo necesita internet: si no hay, hacer las preguntas a mano alzada.', 'La evaluación se puede hacer igual: los resultados quedan guardados en cada celular y se envían solos cuando vuelve la señal.']]
 ];
 

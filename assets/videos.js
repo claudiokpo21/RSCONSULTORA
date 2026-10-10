@@ -3,16 +3,16 @@
    Agrega el botón "Ver video" en las pantallas que tienen un video y lo reproduce a pantalla
    completa (se cierra al terminar, con Esc o con la ✕). También se maneja desde el control remoto.
    Para sumar un video: copiarlo en /videos y agregar una línea en VIDEOS_PRES (pantalla = número
-   que se ve en la presentación, "Pantalla N de 21").
+   que se ve en la presentación, "Pantalla N de 22").
    RS Consultora · Fatiga y Conducción Segura */
 
 const VIDEOS_PRES = [
   { pantalla:3,  src:'videos/v1-que-es-la-fatiga.mp4',   titulo:'¿Qué es la fatiga?' },
   { pantalla:5,  src:'videos/v2-factores-de-riesgo.mp4', titulo:'¿Qué favorece la fatiga?' },
-  { pantalla:8,  src:'videos/v3-senales-de-alerta.mp4',  titulo:'Señales de alerta' },
-  { pantalla:10, src:'videos/v4-livianos-y-pesados.mp4', titulo:'Livianos y pesados' },
-  { pantalla:16, src:'videos/v6-que-hacer.mp4',          titulo:'Si aparece la fatiga' },
-  { pantalla:17, src:'videos/v5-prevencion.mp4',         titulo:'Prevenir la fatiga' }
+  { pantalla:9,  src:'videos/v3-senales-de-alerta.mp4',  titulo:'Señales de alerta' },
+  { pantalla:11, src:'videos/v4-livianos-y-pesados.mp4', titulo:'Livianos y pesados' },
+  { pantalla:17, src:'videos/v6-que-hacer.mp4',          titulo:'Si aparece la fatiga' },
+  { pantalla:18, src:'videos/v5-prevencion.mp4',         titulo:'Prevenir la fatiga' }
 ];
 
 const VideoPres = (() => {

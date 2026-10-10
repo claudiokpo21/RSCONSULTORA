@@ -33,6 +33,8 @@ const SLIDES = [
     <button class="card obj" aria-pressed="false"><span class="obj-n">${pad(i+1)}</span>${ic(o.icon,'lg')}<strong>${o.t}</strong><span class="muted sm">${o.d}</span><span class="obj-check">${ic('check')}</span></button>`).join('')}
   </div>
   <p class="hint">${ic('info')} Tocá cada objetivo para marcarlo como revisado.</p>
+  <div class="stat-strip">${CONTENT.datos.contexto.map(d => `<div class="stat"><b>${d.n}</b><span>${d.t} <sup class="ref">[${d.ref}]</sup></span></div>`).join('')}</div>
+  <p class="src">${CONTENT.datos.fuente} La ANSV señala la conducción con fatiga o estrés como uno de los principales factores de riesgo.</p>
   ${pledgeHTML()}`; },
   init(r){ $$('.obj', r).forEach(b => b.onclick = () => toggleBtn(b)); } },
 
@@ -107,6 +109,20 @@ const SLIDES = [
     count();
   } },
 
+/* 6 — ESTRÉS AL VOLANTE (ANSV, Dossier N.º 5) */
+{ mod:'Módulo 2 · Causas', html(){
+  const S = CONTENT.estres, li = (a, icn) => a.map(t => `<li>${ic(icn)}<span>${t}</span></li>`).join('');
+  return `${head('Módulo 2 · Causas','Estrés al volante', S.def)}
+  <h3 class="h3">¿Cómo cambia la forma de manejar?</h3>
+  <div class="grid g3">${S.efectos.map(f => revealCard(f)).join('')}</div>
+  <div class="grid g3 st-grid">
+    <div class="card"><h3 class="h3">${ic('thermo')} Qué lo dispara</h3><ul class="st-list">${li(S.disparadores, 'chev')}</ul></div>
+    <div class="card"><h3 class="h3">${ic('eye')} Cómo reconocerlo</h3><ul class="st-list">${li(S.senales, 'chev')}</ul></div>
+    <div class="card st-do"><h3 class="h3">${ic('shield')} Qué hacer</h3><ul class="st-list">${li(S.hacer, 'check')}</ul></div>
+  </div>
+  <p class="src">Basado en el Dossier N.º 5 de la ANSV (2021) [9] y en el estudio de Ledesma et al. (2017) [7]. Bibliografía numerada en Referencias.</p>`; },
+  init(r){ bindReveal(r); } },
+
 /* 6 — SUEÑO Y CONDUCCIÓN */
 { mod:'Módulo 2 · Causas', html(){
   const n = CONTENT.cadena.length;
@@ -115,13 +131,27 @@ const SLIDES = [
     <div class="chain-step" style="--d:${i};${c.c ? '--c:'+c.c : ''}">${ic(c.icon)}<span>${c.t}</span></div>${i < n-1 ? `<div class="chain-arrow" style="--d:${i}" aria-hidden="true">→</div>` : ''}`).join('')}
   </div>
   <div class="actions"><button class="btn ghost sm" id="replay">${ic('refresh')} Repetir animación</button></div>
+  <div class="panel awake" id="awake">
+    <h3 class="h3">${ic('clock')} ¿Cuántas horas llevás despierto?</h3>
+    <div class="chips" role="group" aria-label="Horas despierto">${[8,12,17,20,24].map(h => `<button class="chip" data-h="${h}" aria-pressed="false">${h} h</button>`).join('')}</div>
+    <div class="aw-out" id="awOut"><p class="muted">Elegí una opción para ver a qué equivale.</p></div>
+    <p class="src">Equivalencias: Dawson y Reid (1997), <i>Nature</i> [10]; CDC/NIOSH [11]. ${CONTENT.datos.alcohol}</p>
+  </div>
   <div class="callout">${ic('bed')} <span>Dormir no es una pérdida de tiempo: es una medida de seguridad.</span></div>
   <div class="grid g3" style="margin-top:18px">
     <div class="card">${ic('moon','lg')}<h3 class="h3" style="margin-top:10px">El sueño se recupera durmiendo</h3><p class="muted sm">Café, energizantes, aire fresco o música no reemplazan el descanso.</p></div>
     <div class="card">${ic('bed','lg')}<h3 class="h3" style="margin-top:10px">La calidad también importa</h3><p class="muted sm">Un ambiente oscuro, silencioso y sin interrupciones favorece un descanso reparador.</p></div>
     <div class="card">${ic('message','lg')}<h3 class="h3" style="margin-top:10px">Si no descansaste, avisá</h3><p class="muted sm">Informarlo antes de salir permite reorganizar la tarea de forma segura.</p></div>
   </div>`; },
-  init(r){ $('#replay', r).onclick = () => { const c = $('#chain', r); const h = c.innerHTML; c.innerHTML = ''; void c.offsetWidth; c.innerHTML = h; }; } },
+  init(r){ $('#replay', r).onclick = () => { const c = $('#chain', r); const h = c.innerHTML; c.innerHTML = ''; void c.offsetWidth; c.innerHTML = h; };
+    const AW = { 8:[0,'ok','Rendimiento normal si descansaste bien.','Por ejemplo: te levantaste a las 6:00 y son las 14:00.'],
+      12:[20,'mid','Empieza el cansancio acumulado: es momento de planificar pausas.','Por ejemplo: te levantaste a las 6:00 y son las 18:00.'],
+      17:[50,'bad','Como manejar con 0,5 g/l de alcohol en sangre.','Por ejemplo: te levantaste a las 5:00 y salís a manejar a las 22:00.'],
+      20:[75,'bad','Entre 0,5 y 1 g/l de alcohol en sangre.','Por ejemplo: te levantaste a las 5:00 y es la 1:00 de la madrugada.'],
+      24:[100,'bad','Como manejar con 1 g/l de alcohol en sangre: el doble.','Un día completo sin dormir: por ejemplo, después de un turno nocturno.'] };
+    $$('#awake .chip', r).forEach(c => c.onclick = () => { $$('#awake .chip', r).forEach(x => x.setAttribute('aria-pressed', String(x === c)));
+      const h = +c.dataset.h, [p, k, t, e] = AW[h];
+      $('#awOut', r).innerHTML = `<div class="aw-row"><b class="aw-h">${h} horas</b><div class="aw-bar"><i class="${k}" style="width:${Math.max(p, 4)}%"></i><span style="left:50%">0,5 g/l</span><span style="left:100%">1 g/l</span></div></div><p class="aw-t ${k}">${t}</p><p class="sm muted">${e}</p>`; }); } },
 
 /* 7 — MOMENTOS DE MAYOR RIESGO */
 { mod:'Módulo 2 · Causas', html(){
@@ -209,7 +239,11 @@ const SLIDES = [
       <p class="sm dim" style="margin-top:10px">Cálculo: velocidad (km/h) ÷ 3,6 × segundos.</p>
     </div>
   </div>
-  ${fb('warn','Mensaje clave','Unos pocos segundos de pérdida de atención pueden ser suficientes para recorrer una distancia considerable sin controlar correctamente el vehículo.')}`; },
+  ${fb('warn','Mensaje clave','Unos pocos segundos de pérdida de atención pueden ser suficientes para recorrer una distancia considerable sin controlar correctamente el vehículo.')}
+  <div class="panel rx-card"><div class="qr-box" role="img" aria-label="Código QR del test de reacción">${qrSVG(new URL('reaccion.html', location.href).href)}</div>
+    <div><p class="eyebrow">Actividad · en tu celular</p><h3 class="h3">${ic('zap')} ¿Cuánto tardás en reaccionar?</h3>
+      <p class="muted sm">Escaneá el código: medí tu reacción atento y con una simulación de cansancio, y mirá cuántos metros recorrerías antes de frenar.</p>
+      <div class="actions" style="margin-top:10px"><a class="btn ghost sm" href="reaccion.html" target="_blank" rel="noopener">${ic('play')} Probar en esta pantalla</a></div></div></div>`; },
   init(r){
     let speed = 100, secs = 3;
     const viz = $('#msViz', r), dist = $('#msDist', r), status = $('#msStatus', r);
@@ -249,6 +283,9 @@ const SLIDES = [
   <div class="grid g3">${P.tipos.map(t => `<div class="card vtype heavy">${ic(t.icon,'xl')}<div><strong>${t.t}</strong><p class="muted sm">${t.d}</p></div></div>`).join('')}</div>
   <h3 class="h3" style="margin-top:24px">¿Por qué las consecuencias pueden ser más importantes?</h3>
   <div class="grid g-auto">${P.factores.map(f => revealCard(f)).join('')}</div>
+  <h3 class="h3" style="margin-top:24px">Lo que muestran los estudios en Argentina</h3>
+  <div class="stat-strip four">${CONTENT.datos.pesados.map(d => `<div class="stat"><b>${d.n}</b><span>${d.t} <sup class="ref">[${d.ref}]</sup></span></div>`).join('')}</div>
+  <p class="src">${CONTENT.datos.fuente} Dormir las horas recomendadas no alcanza si el sueño está cortado en varias partes.</p>
   ${fb('info','Gestión del riesgo','En vehículos pesados, la gestión de la fatiga requiere planificación de recorridos, pausas, relevos y comunicación permanente con la base.')}`; },
   init(r){ bindReveal(r); } },
 
@@ -402,7 +439,7 @@ const SLIDES = [
     <div class="signature">${instructorCard(CONFIG.consultora.nombre + ' · Capacitación dictada por')}</div>
     ${refs.length ? `<div class="panel refs"><p class="eyebrow">Documentos internos de referencia</p>${refs.map(d => `<p>${ic('clipboard')} ${d.enlace ? `<a href="${esc(d.enlace)}" target="_blank" rel="noopener" style="color:var(--amber)">${esc(d.titulo)}</a>` : esc(d.titulo)}</p>`).join('')}</div>` : ''}
     <div class="actions" style="justify-content:center;margin-top:30px"><a class="btn primary lg" href="vivo.html">${ic('zap')} DESAFÍO EN VIVO</a><button class="btn ghost lg" id="toEval">${ic('clipboard')} CONTINUAR A LA EVALUACIÓN</button></div>
-    <p class="sm dim" style="text-align:center;margin-top:14px"><a href="referencias.html" target="_blank" rel="noopener" style="color:var(--muted)">Referencias y material de consulta</a></p>
+    <p class="sm dim" style="text-align:center;margin-top:14px"><a href="afiche.html" target="_blank" rel="noopener" style="color:var(--amber)">Afiche para imprimir o compartir</a> · <a href="referencias.html" target="_blank" rel="noopener" style="color:var(--muted)">Referencias y material de consulta</a></p>
   </div>`; },
   init(r){ $('#toEval', r).onclick = () => go(LAST); } },
 

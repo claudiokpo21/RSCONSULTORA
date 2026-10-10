@@ -24,11 +24,17 @@ const VARIANTES = [
   /* 3 · Factores de riesgo */ [
     { q:'¿Cuál de estas situaciones favorece la somnolencia al conducir?', c:1,
       o:['Hacer pausas planificadas.','La monotonía de una ruta recta y con poco tránsito.','Mantenerse hidratado.','Dormir adecuadamente antes del viaje.'],
-      e:'Las rutas rectas, los paisajes repetitivos y el poco tránsito reducen los estímulos y favorecen la somnolencia.' } ],
+      e:'Las rutas rectas, los paisajes repetitivos y el poco tránsito reducen los estímulos y favorecen la somnolencia.' },
+    { q:'Según la ANSV, el estrés al volante puede provocar…', c:0,
+      o:['Conductas agresivas, imprudentes o impulsivas.','Más atención y mejores reflejos durante todo el viaje.','Ningún efecto si el vehículo es liviano.','Solo cansancio en las piernas.'],
+      e:'El estrés cambia la forma de manejar: aparecen la agresividad, la imprudencia y la impulsividad. Reconocerlo, no competir en el tránsito y salir con tiempo ayudan a controlarlo.' } ],
   /* 4 · Sueño y conducción */ [
     { q:'Dormir pocas horas varios días seguidos…', c:2,
       o:['No tiene efecto si se toma café.','Se compensa con la experiencia al volante.','Genera una "deuda de sueño" que se acumula.','Solo afecta a quienes manejan de noche.'],
-      e:'Dormir menos de lo habitual genera una deuda de sueño que se acumula si se repite varios días seguidos. Nada reemplaza el descanso.' } ],
+      e:'Dormir menos de lo habitual genera una deuda de sueño que se acumula si se repite varios días seguidos. Nada reemplaza el descanso.' },
+    { q:'Según estudios citados por la ANSV, manejar sin haber dormido lo suficiente produce efectos similares a…', c:1,
+      o:['Tomar un café.','Tener 0,5 g/l de alcohol en sangre.','Manejar con la radio alta.','Nada, si se tiene experiencia.'],
+      e:'La falta de sueño afecta la atención y los reflejos de forma parecida al alcohol: sus efectos son similares a tener 0,5 g/l de alcohol en sangre.' } ],
   /* 5 · Vehículos livianos */ [
     { q:'En vehículos livianos, ¿cuál es una situación de riesgo frecuente?', c:0,
       o:['El regreso a casa después de una jornada extensa.','Conducir descansado y con pausas planificadas.','Revisar el vehículo antes de salir.','Planificar el recorrido con anticipación.'],
