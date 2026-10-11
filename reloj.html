@@ -28,32 +28,36 @@
     <p>El cuerpo tiene un reloj interno de unas 24 horas que sube y baja el nivel de alerta, aunque hayas dormido <sup class="ref">[3]</sup>. Mové la línea por las horas del día y probá qué pasa con un almuerzo abundante o una mala noche.</p>
   </header>
 
-  <section class="panel chart" aria-label="Nivel de alerta durante las 24 horas">
-    <svg id="cv" viewBox="0 0 1000 380" role="img" aria-labelledby="cvT"><title id="cvT">Curva del nivel de alerta a lo largo del día, con dos franjas de mayor somnolencia: la madrugada y el comienzo de la tarde</title></svg>
-    <label for="hora" class="sr" style="position:absolute;left:-9999px">Hora del día</label>
-    <input id="hora" class="range" type="range" min="0" max="23.75" step="0.25" value="14.5">
-    <div class="legend">
-      <span><i style="background:rgba(229,72,77,.35)"></i>Franjas de mayor somnolencia (aprox.) <sup class="ref">[12]</sup></span>
-      <span><i style="background:var(--amber)"></i>Nivel de alerta</span>
-      <span><i style="background:rgba(107,149,232,.55)"></i>Tu viaje</span>
+  <div class="rl-top">
+    <div class="rl-main">
+    <section class="panel chart" aria-label="Nivel de alerta durante las 24 horas">
+      <svg id="cv" viewBox="0 0 1000 380" role="img" aria-labelledby="cvT"><title id="cvT">Curva del nivel de alerta a lo largo del día, con dos franjas de mayor somnolencia: la madrugada y el comienzo de la tarde</title></svg>
+      <label for="hora" class="sr" style="position:absolute;left:-9999px">Hora del día</label>
+      <input id="hora" class="range" type="range" min="0" max="23.75" step="0.25" value="14.5">
+      <div class="legend">
+        <span><i style="background:rgba(229,72,77,.35)"></i>Franjas de mayor somnolencia (aprox.) <sup class="ref">[12]</sup></span>
+        <span><i style="background:var(--amber)"></i>Nivel de alerta</span>
+        <span><i style="background:rgba(107,149,232,.55)"></i>Tu viaje</span>
+      </div>
+    </section>
+      <div class="rl-info">
+        <section class="panel rl-trip"><p class="eyebrow">Tu viaje</p><div class="trip-msg" id="trip" aria-live="polite"></div></section>
+      </div>
     </div>
-  </section>
-
-  <div class="grid">
-    <div class="col">
-      <section class="panel ctrl" aria-label="Ajustes">
-        <div class="row"><span class="lbl">Almuerzo</span>
-          <div class="chips" role="group" aria-label="Almuerzo"><button class="chip" id="mLiv" data-g="comida" data-v="liviano" aria-pressed="true">Liviano</button><button class="chip" id="mAbu" data-g="comida" data-v="abundante" aria-pressed="false">Abundante</button></div></div>
-        <div class="row"><span class="lbl">Anoche dormí</span>
-          <div class="chips" role="group" aria-label="Sueño de la noche anterior"><button class="chip" id="sBien" data-g="sueno" data-v="bien" aria-pressed="true">Bien</button><button class="chip" id="sPoco" data-g="sueno" data-v="poco" aria-pressed="false">Poco</button></div></div>
-        <div class="row"><span class="lbl">Salgo a las</span>
-          <div class="chips" role="group" aria-label="Hora de salida"></div></div>
-        <div class="row"><span class="lbl">El viaje dura</span>
-          <div class="chips" role="group" aria-label="Duración del viaje"></div></div>
-        <div class="trip-msg" id="trip" aria-live="polite"></div>
-      </section>
+    <aside class="rl-side">
+        <section class="panel ctrl" aria-label="Ajustes">
+          <div class="row"><span class="lbl">Almuerzo</span>
+            <div class="chips" role="group" aria-label="Almuerzo"><button class="chip" id="mLiv" data-g="comida" data-v="liviano" aria-pressed="true">Liviano</button><button class="chip" id="mAbu" data-g="comida" data-v="abundante" aria-pressed="false">Abundante</button></div></div>
+          <div class="row"><span class="lbl">Anoche dormí</span>
+            <div class="chips" role="group" aria-label="Sueño de la noche anterior"><button class="chip" id="sBien" data-g="sueno" data-v="bien" aria-pressed="true">Bien</button><button class="chip" id="sPoco" data-g="sueno" data-v="poco" aria-pressed="false">Poco</button></div></div>
+          <div class="row"><span class="lbl">Salgo a las</span>
+            <div class="chips" role="group" aria-label="Hora de salida"></div></div>
+          <div class="row"><span class="lbl">El viaje dura</span>
+            <div class="chips" role="group" aria-label="Duración del viaje"></div></div>
+        </section>
       <section class="panel now" id="now" aria-live="polite"></section>
-    </div>
+    </aside>
+  </div>
 
     <section class="panel dig" aria-label="Digestión y somnolencia">
       <p class="eyebrow">Digestión</p>
@@ -67,7 +71,6 @@
         <ul><li>Comé liviano y tomá agua.</li><li>Si podés, evitá planificar tramos largos en esa franja.</li><li>Ante la primera señal de sueño: detenerse en un lugar seguro, comunicar y descansar.</li><li>El café o el energizante no reemplazan el descanso. Nunca alcohol si vas a manejar.</li></ul>
       </div>
     </section>
-  </div>
 
   <div class="motto"><span aria-hidden="true">●</span> Conocer el reloj del cuerpo ayuda a planificar: las horas de mayor riesgo se manejan con más pausas, o se evitan.</div>
 
