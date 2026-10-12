@@ -64,7 +64,34 @@
 .sz .now .hh b{font-size:2rem}}
 @media (prefers-reduced-motion:reduce){}
 /* ---- El reloj del cuerpo ---- */
-
+.sz .rl-top{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:16px;align-items:start}
+.sz .rl-main{display:grid;gap:14px;min-width:0}
+.sz .rl-info{display:grid;gap:14px}
+.sz .rl-side{display:grid;gap:12px;min-width:0;position:sticky;top:12px}
+.sz .rl-side .ctrl{padding:14px;gap:12px}
+.sz .rl-side .ctrl .row{grid-template-columns:1fr;gap:6px}
+.sz .rl-side .ctrl .lbl{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.sz .rl-side .chips{gap:6px}
+.sz .rl-side .chip{padding:5px 8px;min-height:34px;font-size:.84rem}
+.sz .rl-side .chips{gap:5px}
+.sz .rl-side .now,.sz .rl-trip{padding:14px}
+.sz .rl-side .now{gap:4px}
+.sz .rl-side .now .hh b{font-size:1.7rem}
+.sz .rl-side .now h3{font-size:1rem}
+.sz .rl-side .now p{font-size:.86rem;line-height:1.4}
+.sz .rl-trip .trip-msg{gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.sz .rl-trip .msg{display:block;font-size:.85rem;padding:7px 10px;line-height:1.35}
+.sz .rl-trip .msg b{margin-right:4px}
+.sz .dig{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 24px;align-items:start}
+.sz .dig>.eyebrow,.sz .dig>h2{grid-column:1/-1}
+.sz .dig .do{margin-top:0}
+html.sala .head p{max-width:none;font-size:.92rem;margin-top:2px}
+html.sala .head h1{font-size:1.8rem}
+html.sala .head .eyebrow{margin-bottom:2px}
+html.sala .wrap{gap:12px}
+@media (max-width:1000px){.sz .rl-top{grid-template-columns:1fr}
+.sz .rl-side{position:static}
+.sz .dig{grid-template-columns:1fr}}
 /* ---- La deuda de sueño ---- */
 .sz .lay{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:18px;align-items:start}
 .sz .bars svg{display:block;width:100%;height:auto;touch-action:none;user-select:none;-webkit-user-select:none}
