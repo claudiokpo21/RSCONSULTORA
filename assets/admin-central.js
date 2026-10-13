@@ -145,13 +145,14 @@ function acRender(){
       <button role="tab" aria-selected="${AC.tab === 'jornadas'}" data-tab="jornadas">${ic('calendar')} Jornadas <span class="count">${AC.jornadas.length}</span></button>
       <button role="tab" aria-selected="${AC.tab === 'empresas'}" data-tab="empresas">${ic('building')} Empresas</button>
       <button role="tab" aria-selected="${AC.tab === 'resultados'}" data-tab="resultados">${ic('clipboard')} Resultados <span class="count">${AC.registros.length}</span></button>
+      <button role="tab" aria-selected="${AC.tab === 'usuarios'}" data-tab="usuarios">${ic('lock')} Usuarios</button>
     </div>
-    <div id="acBody">${{ tablero:tableroHTML, jornadas:jornadasHTML, empresas:empresasHTML, resultados:resultadosHTML }[AC.tab]()}</div>`);
+    <div id="acBody">${{ tablero:tableroHTML, jornadas:jornadasHTML, empresas:empresasHTML, resultados:resultadosHTML, usuarios:usuariosHTML }[AC.tab]()}</div>`);
   $$('[data-tab]', acEl).forEach(b => b.onclick = () => { AC.tab = b.dataset.tab; acRender(); });
   $('#acRefresh').onclick = () => { try{ localStorage.removeItem(Datos.KEY); }catch(e){} acReload(); };
   $('#acPw').onclick = () => acNewPassword('change');
   $('#acLogout').onclick = async () => { await Central.signOut(); AC.user = null; acLogin(); };
-  ({ tablero:bindTablero, jornadas:bindJornadas, empresas:bindEmpresas, resultados:bindResultados })[AC.tab]();
+  ({ tablero:bindTablero, jornadas:bindJornadas, empresas:bindEmpresas, resultados:bindResultados, usuarios:bindUsuarios })[AC.tab]();
 }
 
 /* ---------- Jornadas ---------- */
@@ -373,4 +374,82 @@ function shareDialog(j, msg){
     try{ await Central.rpc('rs_admin_contacto_jornada', { p_id:j.id, p_email:v }); j.contacto_email = v || null; shareDialog(j, fb('ok','Email guardado','')); }catch(e){ fail(e); }
   };
   if(!d.open) d.showModal();
+}
+
+
+/* ---------- Usuarios (capacitadores con acceso) ---------- */
+function usuariosHTML(){
+  return `<div class="panel" style="margin-bottom:16px">
+      <p class="eyebrow">Agregar capacitador</p>
+      <p class="muted sm" style="margin-bottom:12px">Crea la cuenta y le da acceso a las presentaciones, los videos y la Administración. Pasale el email y la contraseña inicial: después la puede cambiar desde «Cambiar contraseña».</p>
+      <div class="form-grid us-form">
+        <div class="field"><label for="uNom">NOMBRE</label><input id="uNom" maxlength="80" placeholder="Lic. Nombre Apellido"></div>
+        <div class="field"><label for="uMail">EMAIL</label><input id="uMail" type="email" maxlength="120" placeholder="nombre@mail.com" autocomplete="off"></div>
+        <div class="field"><label for="uPw">CONTRASEÑA INICIAL</label><input id="uPw" type="text" maxlength="72" placeholder="Mínimo 8 caracteres" autocomplete="new-password"></div>
+      </div>
+      <p class="sm dim">Si la persona ya tiene cuenta (por ejemplo, de otra aplicación del mismo Supabase), dejá la contraseña vacía: solo se le da acceso.</p>
+      <div class="actions"><button class="btn primary" id="uAdd">${ic('check')} Agregar</button><button class="btn ghost sm" id="uGen">${ic('refresh')} Generar contraseña</button></div>
+      <div id="uMsg" aria-live="polite"></div>
+    </div>
+    <div class="panel"><p class="eyebrow">Usuarios con acceso</p><div id="uList"><p class="muted">${ic('refresh')} Cargando…</p></div></div>`;
+}
+function usFecha(v){ return v ? new Date(v).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '–'; }
+async function usCargar(){
+  const box = $('#uList'); if(!box) return;
+  try{
+    const lista = await Central.usuarios() || [];
+    box.innerHTML = `<div class="table-wrap"><table class="data"><thead><tr><th>Nombre</th><th>Email</th><th>Cuenta</th><th>Último ingreso</th><th>Acceso desde</th><th></th></tr></thead><tbody>${lista.map(u => `<tr>
+      <td>${esc(u.nombre || '–')}${u.yo ? ' <span class="st ok">vos</span>' : ''}</td><td>${esc(u.email)}</td>
+      <td>${u.cuenta ? (u.confirmada ? '<span class="st ok">Activa</span>' : '<span class="st pend">Falta confirmar el email</span>') : '<span class="st bad">Sin cuenta</span>'}</td>
+      <td>${usFecha(u.ultimo_ingreso)}</td><td>${usFecha(u.alta)}</td>
+      <td class="row-acts">${u.cuenta ? `<button class="btn ghost sm" data-ureset="${esc(u.email)}" title="Le llega un email para crear una contraseña nueva">${ic('lock')} Blanquear contraseña</button>` : ''}
+        ${u.yo ? '' : `<button class="icon-btn" data-uquit="${esc(u.email)}" title="Quitar acceso" aria-label="Quitar acceso a ${esc(u.email)}">${ic('trash')}</button>`}</td></tr>`).join('')}</tbody></table></div>
+      <p class="sm dim" style="margin-top:10px">Quitar el acceso no borra la cuenta: la persona deja de poder abrir el contenido y la Administración. Los registros y certificados no se modifican.</p>`;
+    $$('[data-ureset]', box).forEach(b => b.onclick = async () => {
+      b.disabled = true;
+      try{ await Central.resetPassword(b.dataset.ureset); usMsg('ok', 'Listo: le enviamos a ' + b.dataset.ureset + ' un email para crear una contraseña nueva.'); }
+      catch(e){ usMsg('bad', e.message); } b.disabled = false;
+    });
+    $$('[data-uquit]', box).forEach(b => b.onclick = () => usConfirmarQuitar(b.dataset.uquit));
+  }catch(e){
+    box.innerHTML = /PGRST202|Could not find|does not exist/i.test(e.message || '')
+      ? fb('warn', 'Falta activar la gestión de usuarios', 'Ejecutá una vez el archivo supabase/07_usuarios.sql en Supabase → SQL Editor y tocá «Actualizar».')
+      : fb('bad', 'No se pudo cargar la lista', e.message);
+  }
+}
+function usMsg(k, t, d){ const m = $('#uMsg'); if(m) m.innerHTML = fb(k, t, d); }
+function usConfirmarQuitar(email){
+  const dlg = $('#dlg');
+  dlg.innerHTML = `<div class="dlg-body"><h2>Quitar acceso</h2><p class="muted" style="margin:8px 0 16px">${esc(email)} va a dejar de poder abrir las presentaciones, los videos y la Administración. ¿Confirmás?</p>
+    <div class="actions"><button class="btn primary" id="uqSi">${ic('trash')} Quitar acceso</button><button class="btn ghost" id="uqNo">Cancelar</button></div></div>`;
+  dlg.showModal();
+  $('#uqNo', dlg).onclick = () => dlg.close();
+  $('#uqSi', dlg).onclick = async () => {
+    try{ await Central.usuarioQuitar(email); dlg.close(); usMsg('ok', 'Se le quitó el acceso a ' + email + '.'); usCargar(); }
+    catch(e){ dlg.close(); usMsg('bad', e.message); }
+  };
+}
+function bindUsuarios(){
+  $('#uGen').onclick = () => { const c = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', a = crypto.getRandomValues(new Uint32Array(12)); $('#uPw').value = [...a].map(x => c[x % c.length]).join(''); };
+  $('#uAdd').onclick = async () => {
+    const nombre = $('#uNom').value.trim(), email = $('#uMail').value.trim().toLowerCase(), pw = $('#uPw').value;
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return usMsg('warn', 'Escribí un email válido.');
+    if(pw && pw.length < 8) return usMsg('warn', 'La contraseña inicial tiene que tener al menos 8 caracteres.');
+    const b = $('#uAdd'); b.disabled = true;
+    try{
+      await Central.usuarioGuardar(email, nombre);
+      let estado = '';
+      if(pw) estado = await Central.crearCuenta(email, pw);
+      const t = {
+        creada:['ok', 'Usuario agregado', `Ya puede ingresar con ${email} y la contraseña inicial.`],
+        confirmar:['ok', 'Usuario agregado', `Le llegó a ${email} un email para confirmar la cuenta. Después de confirmarlo, ingresa con la contraseña inicial.`],
+        existe:['info', 'Acceso habilitado', `${email} ya tenía una cuenta: entra con su contraseña de siempre. Si no la recuerda, tocá «Blanquear contraseña».`],
+        '':['info', 'Acceso habilitado', `Si ${email} ya tiene cuenta, puede ingresar. Si no, volvé a agregarlo con una contraseña inicial.`]
+      }[estado];
+      usMsg(t[0], t[1], t[2]);
+      $('#uNom').value = $('#uMail').value = $('#uPw').value = '';
+    }catch(e){ usMsg('bad', 'No se pudo completar', e.message); }
+    b.disabled = false; usCargar();
+  };
+  usCargar();
 }

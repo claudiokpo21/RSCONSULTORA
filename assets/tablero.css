@@ -120,3 +120,5 @@ a.icon-btn{color:var(--text);text-decoration:none}
 .tb-perc .tb-row .trk{grid-area:trk}
 .tb-perc .tb-row .vl{grid-area:vl}
 .emp-cov p.emp-pend{display:flex;justify-content:flex-start;gap:6px;align-items:center;margin:8px 0 0;color:var(--amber)}
+.us-form{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:760px){ .us-form{grid-template-columns:1fr} }

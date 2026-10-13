@@ -127,7 +127,29 @@ const Central = {
     const h = new URLSearchParams(RS_URL_HASH.replace(/^#/, ''));
     return { recovery: h.get('type') === 'recovery', error: h.get('error_description') || h.get('error') || '' };
   },
-  esAdmin(){ return this.rpc('rs_es_admin'); }
+  esAdmin(){ return this.rpc('rs_es_admin'); },
+
+  /* ---- Usuarios (capacitadores) ---- */
+  usuarios(){ return this.rpc('rs_admin_usuarios'); },
+  usuarioGuardar(email, nombre){ return this.rpc('rs_admin_usuario_guardar', { p_email:email, p_nombre:nombre || '' }); },
+  usuarioQuitar(email){ return this.rpc('rs_admin_usuario_quitar', { p_email:email }); },
+  /** Crea la cuenta (email y contraseña) con el alta normal de Supabase, en un cliente aparte
+      para no cerrar la sesión de quien la crea. Devuelve 'creada', 'confirmar' o 'existe'. */
+  async crearCuenta(email, password){
+    const S = CONFIG.supabase;
+    const c = window.supabase.createClient(S.url, S.clavePublica, { auth:{ persistSession:false, autoRefreshToken:false, detectSessionInUrl:false, storageKey:'rs-alta-' + Date.now() } });
+    const { data, error } = await c.auth.signUp({ email, password, options:{ emailRedirectTo:new URL('login.html', location.href).href } });
+    if(error){
+      if(/not allowed|disabled/i.test(error.message)) throw new Error('Las altas de cuentas están desactivadas en Supabase (Authentication → Sign In / Providers → «Allow new users to sign up»).');
+      if(/already registered|already exists/i.test(error.message)) return 'existe';
+      if(/password|characters|weak|pwned/i.test(error.message)) throw new Error('La contraseña es débil: usá al menos 8 caracteres, con letras y números.');
+      if(/rate|seconds/i.test(error.message)) throw new Error('Se enviaron demasiados emails seguidos. Esperá unos minutos y volvé a intentar.');
+      throw new Error(error.message);
+    }
+    if(data.user && Array.isArray(data.user.identities) && !data.user.identities.length) return 'existe';
+    try{ await c.auth.signOut({ scope:'local' }); }catch(e){}
+    return data.session ? 'creada' : 'confirmar';
+  }
 };
 
 // Si el capacitador ya inició sesión, se crea el cliente para que renueve solo el token (y la cookie rs_at).
