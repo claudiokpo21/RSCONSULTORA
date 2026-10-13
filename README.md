@@ -180,6 +180,17 @@ Datos y recomendaciones del Observatorio Vial Nacional de la ANSV (Dossier N.º 
 - **Afiche** (`afiche.html`): enlazado desde el cierre de la presentación, el resultado de la evaluación, el inicio y Administración.
 - **Bibliografía de los datos** en Referencias: cada cifra de la presentación lleva su número de fuente [n].
 
+## Acceso privado y cursos (módulos)
+
+El contenido del capacitador **no es público**: la presentación, los 10 videos, la guía, el desafío en vivo (pantalla del proyector) y las actividades de proyector (`conductor`, `reloj`, `ruta`, `turno`) solo se entregan a quien inició sesión como administrador.
+
+- **Ingreso:** `login.html`, con la misma cuenta de Administración (Supabase). La sesión queda recordada en ese navegador y se renueva sola.
+- **Portal:** `cursos.html` («Hola, Lic. Roberto Seguin»), con los cursos disponibles y sus accesos. Los cursos se definen en `assets/modulos.js`.
+- **Cómo se protege:** `middleware.js` (Vercel Routing Middleware) revisa la cookie `rs_at` contra la función `rs_es_admin` de Supabase. Sin sesión, las páginas llevan a `/login` y los archivos (videos, scripts) responden 401. Necesita `package.json` con `"type": "module"` en la raíz.
+- **Siguen públicos** (se abren con QR, sin cuenta): inicio, evaluación, diagnóstico, refuerzo, jugar, verificar, privacidad, referencias, afiche y las actividades del celular (`riesgos`, `deuda`, `reaccion`, `manejar`). El archivo `content.js` también es público porque lo usa la evaluación.
+- **Repositorio:** el repositorio de GitHub tiene que ser **privado**; si no, cualquiera puede ver los archivos ahí.
+- **Sumar un curso:** copiar sus páginas, agregarlo en `assets/modulos.js` y sumar sus rutas privadas en `middleware.js` (`config.matcher`).
+
 ## DNI y legajo
 
 El participante se identifica con su **DNI** (obligatorio, 7 u 8 números); el **legajo** es opcional y sirve para cruzar con la nómina de la empresa. El DNI aparece en la constancia, los certificados, los informes y el Excel. En la verificación pública (QR) se muestra parcialmente oculto: `**.***.456`.

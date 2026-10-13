@@ -1,0 +1,26 @@
+/* acceso.css — Ingreso del capacitador y portal de cursos · RS Consultora */
+.acc-main{max-width:1140px}
+.acc-card{max-width:520px}
+.acc-card .field{margin-top:14px}
+.acc-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.acc-head h1{font-size:clamp(1.6rem,3vw,2.2rem)}
+.acc-head p.muted{max-width:640px;margin-top:6px}
+.acc-mods{display:grid;gap:16px;margin-bottom:14px}
+.acc-mod{display:grid;gap:12px}
+.acc-mod-h{display:flex;align-items:center;gap:14px}
+.acc-mod-h h2{font-size:1.25rem}
+.acc-mod-h>div{flex:1;min-width:0}
+.acc-ic{width:50px;height:50px;border-radius:14px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;flex:none}
+.acc-ic .ic{width:26px;height:26px}
+.pill-ok,.pill-off{padding:4px 12px;border-radius:999px;font-weight:800;font-size:.8rem;white-space:nowrap}
+.pill-ok{background:var(--green-soft);color:#5fd497;border:1px solid rgba(47,179,109,.5)}
+.pill-off{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.acc-mod.off{opacity:.75;border-style:dashed}
+.acc-mod.off .acc-ic{background:var(--panel2);color:var(--muted)}
+.acc-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.acc-link{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--text);text-decoration:none;transition:border-color .15s,transform .15s}
+.acc-link:hover{border-color:var(--amber);transform:translateY(-1px)}
+.acc-link .ic{color:var(--amber);width:22px;height:22px}
+.acc-link b{display:block;font-size:.95rem}
+.acc-link small{color:var(--muted);font-size:.8rem}
+@media (prefers-reduced-motion:reduce){ .acc-link{transition:none} }

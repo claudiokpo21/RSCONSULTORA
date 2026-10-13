@@ -29,7 +29,7 @@ async function desdeCache(req){
 async function redPrimero(e){
   const req = e.request;
   const red = fetch(req).then(async r => {
-    if(r.ok && r.type === 'basic'){ const c = await caches.open(VERSION); await c.put(req.mode === 'navigate' ? req.url.split('?')[0] : req, await limpio(r.clone())); }
+    if(r.ok && r.type === 'basic' && !new URL(r.url).pathname.startsWith('/login')){ /* no guardar la pantalla de ingreso en lugar del contenido */ const c = await caches.open(VERSION); await c.put(req.mode === 'navigate' ? req.url.split('?')[0] : req, await limpio(r.clone())); }
     return r;
   });
   e.waitUntil(red.catch(() => {}));

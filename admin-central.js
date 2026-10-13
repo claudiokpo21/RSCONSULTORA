@@ -132,7 +132,9 @@ function acRender(){
       <h1>${ic('users')} Administración · ${esc(CONFIG.consultora.nombre)}</h1>
       <div class="actions" style="margin:0;align-items:center">
         <span class="who">${ic('user')} ${esc(AC.user.email)}</span>
+        <a class="btn ghost sm" href="cursos.html">${ic('play')} Mis cursos</a>
         <a class="btn ghost sm" href="guia.html" target="_blank" rel="noopener">${ic('clipboard')} Guía del capacitador</a>
+        <a class="btn ghost sm" href="afiche.html" target="_blank" rel="noopener">${ic('shield')} Afiche</a>
         <button class="btn ghost sm" id="acRefresh">${ic('refresh')} Actualizar</button>
         <button class="btn ghost sm" id="acPw">${ic('lock')} Cambiar contraseña</button>
         <button class="btn ghost sm" id="acLogout">${ic('logout')} Cerrar sesión</button>
