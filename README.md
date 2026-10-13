@@ -189,6 +189,7 @@ El contenido del capacitador **no es público**: la presentación, los 10 videos
 - **Cómo se protege:** `middleware.js` (Vercel Routing Middleware) revisa la cookie `rs_at` contra la función `rs_es_admin` de Supabase. Sin sesión, las páginas llevan a `/login` y los archivos (videos, scripts) responden 401. Necesita `package.json` con `"type": "module"` en la raíz.
 - **Siguen públicos** (se abren con QR, sin cuenta): inicio, evaluación, diagnóstico, refuerzo, jugar, verificar, privacidad, referencias, afiche y las actividades del celular (`riesgos`, `deuda`, `reaccion`, `manejar`). El archivo `content.js` también es público porque lo usa la evaluación.
 - **Repositorio:** el repositorio de GitHub tiene que ser **privado**; si no, cualquiera puede ver los archivos ahí.
+- **Usuarios:** Administración → pestaña **Usuarios**: agregar capacitadores (crea la cuenta con una contraseña inicial y le da acceso), blanquear contraseñas y quitar el acceso. Requiere ejecutar una vez `supabase/07_usuarios.sql`. Si Supabase pide confirmar el email, a la persona le llega un mail antes de poder ingresar.
 - **Sumar un curso:** copiar sus páginas, agregarlo en `assets/modulos.js` y sumar sus rutas privadas en `middleware.js` (`config.matcher`).
 
 ## DNI y legajo
