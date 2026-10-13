@@ -130,3 +130,4 @@ html.sala .rt-canvas{max-height:calc(100dvh - 250px);aspect-ratio:auto;height:ca
   .cansado .cd-head,.cansado .cd-lid,.cansado .cd-mouth-yawn,.cansado .cd-zz,.rg-pista,.rg-mark rect{animation:none}
   .cansado .cd-zz{opacity:1}
 }
+.ac-sub{display:flex;gap:10px;align-items:center;font-size:1.1rem;margin:26px 0 0;color:var(--muted)}

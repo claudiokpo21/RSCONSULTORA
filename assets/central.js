@@ -11,10 +11,22 @@ const RS_URL_HASH = location.hash || '';
 function rsClient(){
   const S = CONFIG.supabase || {};
   if(!S.url || !S.clavePublica || !window.supabase || !window.supabase.createClient) return null;
-  return window.__rsSb || (window.__rsSb = window.supabase.createClient(S.url, S.clavePublica, {
+  if(window.__rsSb) return window.__rsSb;
+  window.__rsSb = window.supabase.createClient(S.url, S.clavePublica, {
     auth:{ persistSession:true, autoRefreshToken:true, storageKey:'rs-capacitacion-auth' },
     realtime:{ params:{ eventsPerSecond:20 } }
-  }));
+  });
+  // Acceso privado: la sesión del capacitador viaja en la cookie rs_at, que revisa middleware.js
+  // antes de entregar la presentación, los videos y las actividades de proyector.
+  window.__rsSb.auth.onAuthStateChange((ev, ses) => rsCookieSesion(ses));
+  return window.__rsSb;
+}
+function rsCookieSesion(ses){
+  try{
+    const seg = location.protocol === 'https:' ? '; Secure' : '';
+    if(ses && ses.access_token) document.cookie = `rs_at=${encodeURIComponent(ses.access_token)}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax${seg}`;
+    else document.cookie = `rs_at=; Path=/; Max-Age=0; SameSite=Lax${seg}`;
+  }catch(e){}
 }
 function randomToken(){
   const a = new Uint8Array(24);
@@ -117,6 +129,9 @@ const Central = {
   },
   esAdmin(){ return this.rpc('rs_es_admin'); }
 };
+
+// Si el capacitador ya inició sesión, se crea el cliente para que renueve solo el token (y la cookie rs_at).
+if(/(?:^|;\s*)rs_at=/.test(document.cookie)) setTimeout(() => { try{ rsClient(); }catch(e){} }, 0);
 
 // Reintento automático de envíos pendientes
 window.addEventListener('online', () => Central.flush());
